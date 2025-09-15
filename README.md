@@ -55,14 +55,14 @@ Project when reusing significant parts of the code or documentation.
 
 ### Attribution
 
-This project is originally created and open‑sourced by **[Sandeep Suman](https://github.com/SandeepKrSuman)**.
+Part of this code-base was originally created and open‑sourced by **[Sandeep Suman](https://github.com/SandeepKrSuman)**.
 The current version adapts the lookup to use the **Justice Definitions Project** (MediaWiki) as the primary
 data source for legal terms, fetching a page intro and displaying the first 140 characters with a link back
 to the source. Prior versions referenced the Free Dictionary API for general‑purpose terms.
 
 - Original author: [SandeepKrSuman](https://github.com/SandeepKrSuman)
 - Previous data source: [freeDictionaryAPI](https://github.com/meetDeveloper/freeDictionaryAPI)
-- Current data source: Justice Definitions Project
+- Current data source: <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>
 
 <br>
 
