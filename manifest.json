@@ -11,6 +11,7 @@
         "default_title": "Dictionary",
         "default_popup": "popup/popup.html"
     },
+    "options_page": "options/options.html",
     "description": "Select a word on the webpage and open popup to instantly look up in the dictionary",
     "icons": {
       "16": "assets/icon16.png",
@@ -27,7 +28,8 @@
         }
       ],
       "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
       ],
       "host_permissions": [
         "https://jdc-definitions.wikibase.wiki/*",

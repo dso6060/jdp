@@ -38,8 +38,13 @@ function gotTabs(tabs) {
   });
 }
 
-const APPS_SCRIPT_WEBHOOK = ""; // TODO: paste your deployed Apps Script Web App URL here
-const APPS_SCRIPT_TOKEN = ""; // TODO: set a shared secret token that Apps Script validates
+let APPS_SCRIPT_WEBHOOK = ""; // loaded from chrome.storage
+let APPS_SCRIPT_TOKEN = ""; // loaded from chrome.storage
+
+chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK", "APPS_SCRIPT_TOKEN"], (data) => {
+  APPS_SCRIPT_WEBHOOK = data.APPS_SCRIPT_WEBHOOK || "";
+  APPS_SCRIPT_TOKEN = data.APPS_SCRIPT_TOKEN || "";
+});
 
 let pageExtract,
   word,

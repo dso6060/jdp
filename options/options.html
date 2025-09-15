@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dictionary Options</title>
+    <style>
+      body { font-family: -apple-system, system-ui, Arial, sans-serif; padding: 16px; }
+      label { display: block; margin-top: 12px; font-weight: 600; }
+      input { width: 100%; padding: 8px; margin-top: 6px; }
+      button { margin-top: 16px; padding: 8px 12px; }
+      .status { margin-top: 10px; color: #2e7d32; }
+    </style>
+  </head>
+  <body>
+    <h2>Configure Request Endpoint</h2>
+    <label for="webhook">Apps Script Webhook URL</label>
+    <input id="webhook" type="url" placeholder="https://script.google.com/macros/s/....../exec" />
+
+    <label for="token">Webhook Token</label>
+    <input id="token" type="text" placeholder="shared-secret-token" />
+
+    <button id="save">Save</button>
+    <div class="status" id="status"></div>
+
+    <script src="options.js"></script>
+  </body>
+  </html>
+
+
