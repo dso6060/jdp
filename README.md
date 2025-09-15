@@ -1,6 +1,6 @@
-<p align="center"><a href="https://chrome.google.com/webstore/detail/dictionary/dlapopclhkmhhkmjhhaloapiiepbbnii"></a></p>
+<p align="center">JUSTICE DEFINTION PROJECT</p>
 
-<p align="center"><i><a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a></i></p>
+
 
 ---
 
@@ -14,6 +14,7 @@ grounded in Indian legal context while remaining easy to consult during everyday
 </p>
   
 <br>
+
 
 ### Demo 🎥
 
@@ -77,14 +78,5 @@ This browser extension is a plugin built on top of the content created and maint
 
 [MIT](LICENSE) © [SandeepKrSuman](https://github.com/SandeepKrSuman)
 
-<br>
-
-### Resource
-
-[![](https://img.shields.io/badge/-Chrome%20Extensions-64C9CF?style=for-the-badge)](https://github.com/SandeepKrSuman/chrome-extensions)
-
-<br>
-
-<p align="center">If you like this project, don't forget to 🌟 this repo.</p>
 
  
