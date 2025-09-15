@@ -1,4 +1,4 @@
-<p align="center">JUSTICE DEFINTION PROJECT</p>
+<p align="center">JUSTICE DEFINTIONS PROJECT</p>
 
 ---
 
