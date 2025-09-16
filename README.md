@@ -8,20 +8,6 @@
 
 A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology. Features a sliding overlay panel that appears on top of webpages without disrupting the user's browsing experience. Built for researchers, students, and practitioners.
 
-## Summary
-
-**Justice Definitions Project Extension** is a Chrome extension that makes legal language accessible through two interaction methods:
-
-1. **Right-Click Lookup**: Select any text on a webpage and right-click to get instant definition previews in a floating popup
-2. **Sliding Overlay Panel**: Click the extension icon to open a 400px wide overlay that slides in from the right side, featuring built-in search and request functionality
-
-**Key Benefits:**
-- **Non-disruptive**: Overlay appears on top without affecting webpage layout
-- **Instant access**: Right-click any legal term for immediate definitions
-- **Request system**: Submit missing terms via webhook integration
-- **Smooth UX**: 0.3s slide animations and click-outside-to-close functionality
-- **Expert-curated**: Built on the Justice Definitions Project knowledge base
-
 ## Demo
 
 ### Right-Click Lookup
@@ -143,6 +129,13 @@ Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki
 - **Clear feedback messages** for all user actions
 - **Professional loading states** during webhook requests
 - **Graceful error recovery** with helpful user guidance
+
+## Summary
+
+**Justice Definitions Project Extension** is a Chrome extension that makes legal language accessible through two interaction methods:
+
+1. **Right-Click Lookup**: Select any text on a webpage and right-click to get instant definition previews in a floating popup
+2. **Sliding Overlay Panel**: Click the extension icon to open a 400px wide overlay that slides in from the right side, featuring built-in search and request functionality
 
 ### License
 
