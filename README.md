@@ -45,6 +45,9 @@ A Chrome extension that provides instant access to legal definitions from the [J
 3. **Request missing definitions** using the button
 4. **Click outside** to close panel
 
+### PDF Pages
+Right-click lookup does not work on PDF documents. For PDF pages, use the **side panel** and type the words you want to look up.
+
 ## Features
 
 ### Core Features
