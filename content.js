@@ -195,25 +195,33 @@ function requestDefinition(query) {
   const pageUrl = window.location.href;
   const nowIso = new Date().toISOString();
   
+  // Prepare request data
+  const requestData = { 
+    term: query, 
+    page_url: pageUrl, 
+    timestamp: nowIso 
+  };
+  
+  console.log("Sending webhook request:", requestData);
+  console.log("Webhook URL:", WEBHOOK_URL);
+  
   // Send request to webhook
   fetch(WEBHOOK_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      term: query, 
-      page_url: pageUrl, 
-      timestamp: nowIso 
-    })
+    mode: "no-cors", // Required for Google Apps Script
+    headers: { 
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestData)
   })
   .then(response => {
-    if (response.ok) {
-      showRequestSuccess(query);
-    } else {
-      showRequestError("Could not submit request.");
-    }
+    // With no-cors mode, we can't read the response status
+    // So we assume success if no error is thrown
+    showRequestSuccess(query);
   })
   .catch(error => {
-    showRequestError("Network error submitting request.");
+    console.error("Webhook error:", error);
+    showRequestError("Failed to submit request. Please try again.");
   });
 }
 
@@ -222,10 +230,13 @@ function showRequestSuccess(query) {
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
-      <strong style="color: #28a745;">✓ Request submitted</strong>
+      <strong style="color: #28a745;">✓ Request submitted successfully</strong>
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
-      Your request for "${query}" has been sent to the Justice Definitions Project team.
+      Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #f8f9fa; padding: 6px; border-radius: 4px;">
+      The team will review your request and may add this definition to the knowledge base.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
@@ -241,7 +252,13 @@ function showRequestError(message) {
   
   floatingPopup.innerHTML = `
     <div style="color: #dc3545; margin-bottom: 8px;">
-      ⚠ ${message}
+      <strong>⚠ Request failed</strong>
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+      ${message}
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #fff3cd; padding: 6px; border-radius: 4px; border-left: 3px solid #ffc107;">
+      <strong>Tip:</strong> You can also request definitions by clicking the extension icon and using the "Request Definition" button there.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
