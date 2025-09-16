@@ -362,12 +362,20 @@ function showError(message) {
   `;
 }
 
-// Hide popup when clicking elsewhere
+// Hide popup when clicking elsewhere and handle side panel clicks
 document.addEventListener("click", function(event) {
   if (floatingPopup && !floatingPopup.contains(event.target)) {
     floatingPopup.remove();
     floatingPopup = null;
   }
+  
+  // Check if click is outside side panel and send message to close it
+  chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
+    if (response && response.isOpen) {
+      // Side panel is open, send click outside message
+      chrome.runtime.sendMessage({ type: "CLICK_OUTSIDE_SIDE_PANEL" });
+    }
+  });
 });
 
 // receive the message from popup (for backward compatibility with extension popup).

@@ -28,6 +28,9 @@ function initializeSidePanel() {
     closeBtn.addEventListener('click', closeSidePanel);
   }
   
+  // Set up click-outside functionality
+  setupClickOutsideHandler();
+  
   // Check if we have a search query from the extension
   checkForSearchQuery();
 }
@@ -61,11 +64,6 @@ function handleSearch() {
 }
 
 async function performSearch(query) {
-  // Show search section and hide welcome
-  document.getElementById('welcome').style.display = 'none';
-  document.getElementById('searchSection').style.display = 'block';
-  document.getElementById('wikiHome').style.display = 'none';
-  
   // Set the search input value
   document.getElementById('searchInput').value = query;
   
@@ -143,12 +141,16 @@ async function searchJDPWiki(query) {
 
 function displayResults(results, query) {
   const resultsContainer = document.getElementById('results');
+  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
   
   if (results.length === 0) {
     // Show wiki home if no results
     showWikiHome();
     return;
   }
+  
+  // Hide the default wiki iframe when showing results
+  wikiIframeContainer.style.display = 'none';
   
   let html = `<div class="search-info">
     <h3>Found ${results.length} definition${results.length === 1 ? '' : 's'} for "${query}"</h3>
@@ -160,11 +162,11 @@ function displayResults(results, query) {
     html += `
       <div class="result-item">
         <div class="result-title">
-          <a href="${result.url}" target="_blank">${result.title}</a>
+          <a href="#" onclick="displaySourceUrl('${result.url}'); return false;">${result.title}</a>
         </div>
         <div class="result-snippet">${displayText}</div>
         <div class="result-meta">
-          <a href="${result.url}" target="_blank">Read more on Justice Definitions Project →</a>
+          <a href="#" onclick="displaySourceUrl('${result.url}'); return false;">View full definition →</a>
         </div>
       </div>
     `;
@@ -243,15 +245,40 @@ function showError(message) {
 }
 
 function showWikiHome() {
-  document.getElementById('welcome').style.display = 'none';
-  document.getElementById('searchSection').style.display = 'block';
-  document.getElementById('wikiHome').style.display = 'block';
-  document.getElementById('results').innerHTML = `
+  const resultsContainer = document.getElementById('results');
+  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
+  
+  // Show the default wiki iframe
+  wikiIframeContainer.style.display = 'flex';
+  
+  resultsContainer.innerHTML = `
     <div class="search-info">
       <h3>No definitions found</h3>
       <p>Try browsing the Justice Definitions Project knowledge base below.</p>
     </div>
   `;
+}
+
+function displaySourceUrl(url) {
+  const wikiIframe = document.getElementById('wikiIframe');
+  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
+  const resultsContainer = document.getElementById('results');
+  
+  // Show the iframe container and hide results
+  wikiIframeContainer.style.display = 'flex';
+  resultsContainer.style.display = 'none';
+  
+  // Load the source URL in the iframe
+  wikiIframe.src = url;
+}
+
+function setupClickOutsideHandler() {
+  // Listen for clicks on the main page (outside the side panel)
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'CLICK_OUTSIDE_SIDE_PANEL') {
+      closeSidePanel();
+    }
+  });
 }
 
 function closeSidePanel() {

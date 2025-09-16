@@ -34,6 +34,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       query: message.query 
     });
     sendResponse({ success: true });
+  } else if (message.type === "CLICK_OUTSIDE_SIDE_PANEL") {
+    // Close side panel when clicked outside
+    const windowId = sender.tab.windowId;
+    if (sidePanelStatus.get(windowId)) {
+      chrome.sidePanel.close({ windowId: windowId });
+      sidePanelStatus.set(windowId, false);
+    }
+    sendResponse({ success: true });
   }
   
   return true; // Keep message channel open
