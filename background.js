@@ -20,10 +20,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (message.type === "CLOSE_SIDE_PANEL") {
     // Close side panel when requested from side panel
-    const windowId = message.windowId || sender.tab?.windowId;
-    if (windowId) {
-      chrome.sidePanel.close({ windowId: windowId });
-      sidePanelStatus.set(windowId, false);
+    console.log("Received CLOSE_SIDE_PANEL message", message);
+    // If we have a windowId from the message, use it; otherwise find the active window
+    if (message.windowId) {
+      console.log("Closing side panel for window:", message.windowId);
+      chrome.sidePanel.close({ windowId: message.windowId });
+      sidePanelStatus.set(message.windowId, false);
+    } else {
+      // Find the current active window and close its side panel
+      chrome.windows.getCurrent((window) => {
+        console.log("Current window:", window);
+        if (window && sidePanelStatus.get(window.id)) {
+          console.log("Closing side panel for current window:", window.id);
+          chrome.sidePanel.close({ windowId: window.id });
+          sidePanelStatus.set(window.id, false);
+        } else {
+          console.log("No side panel found for current window or window not found");
+        }
+      });
     }
     sendResponse({ success: true });
   } else if (message.type === "CHECK_SIDE_PANEL_STATUS") {

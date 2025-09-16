@@ -41,7 +41,8 @@
       "permissions": [
         "activeTab",
         "storage",
-        "sidePanel"
+        "sidePanel",
+        "windows"
       ],
       "host_permissions": [
         "https://jdc-definitions.wikibase.wiki/*",
