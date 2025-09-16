@@ -40,12 +40,12 @@ const CONFIG = {
     MIN_WORD_COUNT: 4
   },
   
-  // Extension Metadata
-  EXTENSION: {
-    NAME: "Justice Definitions Project",
-    VERSION: "0.6.0",
-    DESCRIPTION: "Make legal language accessible by connecting webpage selections to the Justice Definitions Project"
-  }
+    // Extension Metadata
+    EXTENSION: {
+      NAME: "Justice Definitions Project",
+      VERSION: "0.8.0",
+      DESCRIPTION: "Make legal language accessible by connecting webpage selections to the Justice Definitions Project"
+    }
 };
 
 // Make config available globally for extension

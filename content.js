@@ -304,6 +304,11 @@ function performSidePanelSearch(query) {
 
 // Request definition from side panel
 function requestDefinitionFromSidePanel(query) {
+  console.log("requestDefinitionFromSidePanel called with query:", query);
+  console.log("CONFIG object:", CONFIG);
+  console.log("WEBHOOK_URL:", CONFIG.WEBHOOK_URL);
+  console.log("ACCESS_KEY:", CONFIG.WEBHOOK.ACCESS_KEY);
+  
   // Get current page URL
   const pageUrl = window.location.href;
   const nowIso = new Date().toISOString();
@@ -317,6 +322,26 @@ function requestDefinitionFromSidePanel(query) {
   };
   
   console.log("Sending webhook request from side panel:", requestData);
+  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
+  
+  // Show loading state in side panel
+  const results = document.getElementById('jdp-results');
+  if (results) {
+    results.innerHTML = `
+      <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+          <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span style="color: #666;">Submitting request...</span>
+        </div>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </div>
+    `;
+  }
   
   // Use fetch with no-cors to avoid navigation and preserve popup
   const formData = new FormData();
@@ -325,31 +350,38 @@ function requestDefinitionFromSidePanel(query) {
   formData.append('timestamp', nowIso);
   formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
   
+  // Log FormData contents for debugging
+  console.log("FormData contents:");
+  for (let [key, value] of formData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
+  
   fetch(CONFIG.WEBHOOK_URL, {
     method: 'POST',
     mode: 'no-cors',
     body: formData
   })
   .then(() => {
-    // Show success message in side panel
-    const results = document.getElementById('jdp-results');
+    // Success - show message in side panel
+    console.log("Request submitted successfully from side panel");
     if (results) {
       results.innerHTML = `
         <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-          <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted</div>
-          <div style="color: #155724; font-size: 14px; line-height: 1.5;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
+          <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
+          <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
+          <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
         </div>
       `;
     }
   })
   .catch((error) => {
-    console.error("Request failed:", error);
-    const results = document.getElementById('jdp-results');
+    console.error("Request failed from side panel:", error);
     if (results) {
       results.innerHTML = `
         <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
           <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
-          <div style="color: #721c24; font-size: 14px; line-height: 1.5;">Failed to submit request for "${query}". Please try again.</div>
+          <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to submit request for "${query}". Please try again.</div>
+          <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
         </div>
       `;
     }
