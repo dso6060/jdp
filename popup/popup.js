@@ -104,8 +104,6 @@ async function searchJDPWiki(query) {
       }
 
       // Fallback: clean up wiki markup from the search snippet if extract is empty
-      // TODO: Issue #1 - Improve API cleanup layer for better display output
-      // Current cleanup is basic and may not handle all MediaWiki markup patterns
       if (!extractText) {
         const snippetHtml = first.snippet || "";
         const tmp = document.createElement("div");
