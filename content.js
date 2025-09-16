@@ -216,7 +216,15 @@ function showNoResult(query) {
 }
 
 function requestDefinition(query) {
-  if (!floatingPopup) return;
+  if (!floatingPopup) {
+    console.error("requestDefinition: floatingPopup is null");
+    return;
+  }
+  
+  if (!document.body.contains(floatingPopup)) {
+    console.error("requestDefinition: floatingPopup is not in DOM");
+    return;
+  }
   
   // Show loading state
   floatingPopup.innerHTML = `
@@ -247,52 +255,27 @@ function requestDefinition(query) {
   console.log("Sending webhook request:", requestData);
   console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
   
-  // Use a simple form submission approach that works with Google Apps Script
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = CONFIG.WEBHOOK_URL;
-  form.style.display = 'none';
+  // Use fetch with no-cors to avoid navigation and preserve popup
+  const formData = new FormData();
+  formData.append('term', query);
+  formData.append('page_url', pageUrl);
+  formData.append('timestamp', nowIso);
+  formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
   
-  // Add form fields
-  const termField = document.createElement('input');
-  termField.type = 'hidden';
-  termField.name = 'term';
-  termField.value = query;
-  form.appendChild(termField);
-  
-  const urlField = document.createElement('input');
-  urlField.type = 'hidden';
-  urlField.name = 'page_url';
-  urlField.value = pageUrl;
-  form.appendChild(urlField);
-  
-  const timeField = document.createElement('input');
-  timeField.type = 'hidden';
-  timeField.name = 'timestamp';
-  timeField.value = nowIso;
-  form.appendChild(timeField);
-  
-  const accessKeyField = document.createElement('input');
-  accessKeyField.type = 'hidden';
-  accessKeyField.name = 'access_key';
-  accessKeyField.value = CONFIG.WEBHOOK.ACCESS_KEY;
-  form.appendChild(accessKeyField);
-  
-  // Submit the form
-  document.body.appendChild(form);
-  form.submit();
-  
-  // Clean up
-  setTimeout(() => {
-    if (document.body.contains(form)) {
-      document.body.removeChild(form);
-    }
-  }, 1000);
-  
-  // Show success message after a short delay
-  setTimeout(() => {
+  fetch(CONFIG.WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  })
+  .then(() => {
+    // Success - show message in popup
+    console.log("Request submitted successfully");
     showRequestSuccess(query);
-  }, 800);
+  })
+  .catch((error) => {
+    console.error("Request failed:", error);
+    showRequestError("Failed to submit request. Please try again.");
+  });
 }
 
 function showRequestSuccess(query) {
@@ -308,18 +291,13 @@ function showRequestSuccess(query) {
   
   console.log("Showing success message for query:", query);
   
+  // Simple success message as a label string
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
-      <strong style="color: #28a745;">✓ Definition Request Registered</strong>
+      <strong style="color: #28a745;">✓ Request Submitted Successfully</strong>
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
-      The highlighted phrase "<strong>${query}</strong>" has been successfully sent to the Justice Definitions Project experts.
-    </div>
-    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #e8f5e8; padding: 8px; border-radius: 4px; border-left: 3px solid #28a745;">
-      <strong>✓ Registered in Database:</strong> Your request has been logged in the "need definition" database for expert review and potential addition to the knowledge base.
-    </div>
-    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #f8f9fa; padding: 6px; border-radius: 4px;">
-      <strong>Next Steps:</strong> The Justice Definitions Project team will review your request and may add this definition to help future users.
+      Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
