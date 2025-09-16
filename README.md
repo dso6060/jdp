@@ -108,28 +108,6 @@ Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki
 - ⚠️ **Development version** - Not published to Chrome Web Store
 - 🔓 **Open Source** - Available for reference and contributions
 
-## Recent Updates (v0.8.0)
-
-### ✅ **Webhook Integration Fixed**
-- **Fixed function scope issues** that prevented webhook requests from side panel
-- **Replaced problematic inline onclick** with proper event listeners
-- **Added comprehensive error handling** and debugging capabilities
-- **Implemented multiple fallback mechanisms** for reliable function execution
-- **Enhanced user feedback** with detailed success/error messages
-
-### ✅ **Enhanced Debugging & Reliability**
-- **Comprehensive console logging** for webhook debugging
-- **Extension context validation** to prevent crashes
-- **FormData validation** and request monitoring
-- **User-friendly error alerts** when functions aren't available
-- **Robust error handling** for all webhook operations
-
-### ✅ **Improved User Experience**
-- **Smooth button interactions** with proper event handling
-- **Clear feedback messages** for all user actions
-- **Professional loading states** during webhook requests
-- **Graceful error recovery** with helpful user guidance
-
 ## Summary
 
 **Justice Definitions Project Extension** is a Chrome extension that makes legal language accessible through two interaction methods:
