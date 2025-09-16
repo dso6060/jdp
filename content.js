@@ -293,14 +293,39 @@ function performSidePanelSearch(query) {
         
         results.innerHTML = resultsHTML;
       } else {
-        // No results found
+        // No results found - use a fixed button ID
+        const buttonId = 'request-def-btn';
         results.innerHTML = `
           <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
             <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">No Results Found</div>
             <div style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 12px;">No definitions found for "${query}" in the Justice Definitions Project database.</div>
-            <button onclick="requestDefinitionFromSidePanel('${query}')" style="background: #0066cc; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">Request Definition</button>
+            <button id="${buttonId}" data-query="${query}" style="background: #0066cc; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">Request Definition</button>
           </div>
         `;
+        
+        // Add event listener to the button
+        setTimeout(() => {
+          const button = document.getElementById(buttonId);
+          if (button) {
+            button.addEventListener('click', function() {
+              const query = this.getAttribute('data-query');
+              console.log('Request Definition button clicked for query:', query);
+              console.log('Available functions:', {
+                requestDefinitionFromSidePanel: typeof window.requestDefinitionFromSidePanel,
+                handleDefinitionRequest: typeof window.handleDefinitionRequest
+              });
+              
+              if (typeof window.requestDefinitionFromSidePanel === 'function') {
+                window.requestDefinitionFromSidePanel(query);
+              } else if (typeof window.handleDefinitionRequest === 'function') {
+                window.handleDefinitionRequest(query);
+              } else {
+                console.error('No request function available');
+                alert('Error: Request function not available. Please reload the extension.');
+              }
+            });
+          }
+        }, 10);
       }
     })
     .catch(error => {
@@ -473,6 +498,19 @@ function requestDefinitionFromSidePanel(query) {
 
 // Make requestDefinitionFromSidePanel globally accessible
 window.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
+
+// Also expose it on the document for better compatibility
+document.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
+
+// Add a fallback function that can be called from the side panel
+window.handleDefinitionRequest = function(query) {
+  console.log("handleDefinitionRequest called with query:", query);
+  if (typeof requestDefinitionFromSidePanel === 'function') {
+    requestDefinitionFromSidePanel(query);
+  } else {
+    console.error("requestDefinitionFromSidePanel function not available");
+  }
+};
 
 // Test function to verify webhook URL accessibility
 function testWebhookURL() {
