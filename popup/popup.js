@@ -27,9 +27,7 @@ function onTabsReceived(tabs) {
       document.getElementById("status").innerHTML =
         "Refresh the page and try again.";
     } else if (response.selectedWord === "_TextNotSelected_") {
-      document.getElementById("status").innerHTML = "Welcome!";
-      document.getElementById("example").innerHTML =
-        "Please select a word to find its definition.";
+      document.getElementById("status").innerHTML = "Welcome! Please select a word to find its definition.";
     } else {
       let selectedWord = response.selectedWord;
       selectedWord = selectedWord.replace(/[^a-zA-Z ]/g, "");
@@ -43,7 +41,7 @@ function onTabsReceived(tabs) {
 if (typeof CONFIG === 'undefined') {
   // Fallback configuration if config.js is not available
   window.CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbzSv0cq8N4dQv0RJJr0Uuo6ZUfyDzOirkeG2fxHu9FrcSehGcLdnrS3Ajyd13e0p5aR/exec",
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
       ENABLED: true
@@ -134,7 +132,7 @@ function setValuesFromJDP() {
   
   document.getElementById(
     "word"
-  ).innerHTML = `${term} <a href=${sourceUrl} class="searchanchor" target="_blank"><img class="searchsvg" title="read more" src = "../assets/searchonweb.svg" alt="read more"/><a>`;
+  ).innerHTML = `${term} <a href=${sourceUrl} class="searchanchor" target="_blank">Read more →</a>`;
   document.getElementById("status").innerHTML = "";
   document.getElementById("definition").innerHTML = displayText;
 }
