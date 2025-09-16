@@ -205,23 +205,45 @@ function requestDefinition(query) {
   console.log("Sending webhook request:", requestData);
   console.log("Webhook URL:", WEBHOOK_URL);
   
-  // Send request to webhook
+  // Try multiple approaches to avoid CORS issues
+  
+  // Approach 1: Form data POST (most compatible with Google Apps Script)
+  const formData = new FormData();
+  formData.append('term', query);
+  formData.append('page_url', pageUrl);
+  formData.append('timestamp', nowIso);
+  
   fetch(WEBHOOK_URL, {
     method: "POST",
-    mode: "no-cors", // Required for Google Apps Script
-    headers: { 
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(requestData)
+    mode: "no-cors",
+    body: formData
   })
-  .then(response => {
+  .then(() => {
     // With no-cors mode, we can't read the response status
     // So we assume success if no error is thrown
     showRequestSuccess(query);
   })
   .catch(error => {
-    console.error("Webhook error:", error);
-    showRequestError("Failed to submit request. Please try again.");
+    console.error("Form data POST failed:", error);
+    
+    // Approach 2: Fallback to GET request with URL parameters
+    const params = new URLSearchParams({
+      term: query,
+      page_url: pageUrl,
+      timestamp: nowIso
+    });
+    
+    fetch(`${WEBHOOK_URL}?${params}`, {
+      method: "GET",
+      mode: "no-cors"
+    })
+    .then(() => {
+      showRequestSuccess(query);
+    })
+    .catch(getError => {
+      console.error("GET fallback also failed:", getError);
+      showRequestError("Failed to submit request. Please try again.");
+    });
   });
 }
 
