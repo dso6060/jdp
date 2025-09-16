@@ -236,17 +236,128 @@ function performSidePanelSearch(query) {
     </style>
   `;
   
-  // Perform search (simplified for now)
-  setTimeout(() => {
-    results.innerHTML = `
-      <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <div style="font-size: 16px; font-weight: 600; color: #0066cc; margin-bottom: 8px;">Search Results for "${query}"</div>
-        <div style="color: #666; font-size: 14px; line-height: 1.5;">This is a placeholder for search results. In a full implementation, this would show actual definitions from the Justice Definitions Project API.</div>
-        <div style="margin-top: 8px; font-size: 12px; color: #999;">Source: Justice Definitions Project</div>
-      </div>
-    `;
-  }, 1000);
+  // Perform actual lookup using the Justice Definitions Project API
+  const cleanQuery = query.replace(/[^a-zA-Z ]/g, "");
+  const api = CONFIG.API_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
+  const searchParams = "action=query&list=search&srprop=snippet&format=json&origin=*" + 
+    `&srsearch=${encodeURIComponent(cleanQuery)}`;
+  
+  fetch(`${api}?${searchParams}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.query && data.query.search && data.query.search.length > 0) {
+        // Show all search results
+        let resultsHTML = '';
+        
+        data.query.search.forEach((item, index) => {
+          const title = item.title;
+          const snippet = item.snippet || "";
+          
+          // Clean up the snippet
+          const tmp = document.createElement("div");
+          tmp.innerHTML = snippet;
+          const cleanSnippet = (tmp.textContent || tmp.innerText || "")
+            .replace(/\[\[[^\]]+\]\]/g, "")
+            .replace(/\{\{[^}]+\}\}/g, "")
+            .replace(/==+[^=]*==+/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+          
+          const sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
+          
+          resultsHTML += `
+            <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="font-size: 16px; font-weight: 600; color: #0066cc; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                <a href="${sourceUrl}" target="_blank" style="color: inherit; text-decoration: none;">${title}</a>
+                <span style="font-size: 12px; color: #999;">(${index + 1})</span>
+              </div>
+              <div style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${cleanSnippet}</div>
+              <div style="font-size: 12px; color: #999;">
+                <a href="${sourceUrl}" target="_blank" style="color: #0066cc; text-decoration: none;">Read more →</a>
+              </div>
+            </div>
+          `;
+        });
+        
+        results.innerHTML = resultsHTML;
+      } else {
+        // No results found
+        results.innerHTML = `
+          <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">No Results Found</div>
+            <div style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 12px;">No definitions found for "${query}" in the Justice Definitions Project database.</div>
+            <button onclick="requestDefinitionFromSidePanel('${query}')" style="background: #0066cc; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">Request Definition</button>
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error("Search failed:", error);
+      results.innerHTML = `
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+          <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Search Error</div>
+          <div style="color: #856404; font-size: 14px; line-height: 1.5;">Failed to search for "${query}". Please try again.</div>
+        </div>
+      `;
+    });
 }
+
+// Request definition from side panel
+function requestDefinitionFromSidePanel(query) {
+  // Get current page URL
+  const pageUrl = window.location.href;
+  const nowIso = new Date().toISOString();
+  
+  // Prepare request data
+  const requestData = { 
+    term: query, 
+    page_url: pageUrl, 
+    timestamp: nowIso,
+    access_key: CONFIG.WEBHOOK.ACCESS_KEY
+  };
+  
+  console.log("Sending webhook request from side panel:", requestData);
+  
+  // Use fetch with no-cors to avoid navigation and preserve popup
+  const formData = new FormData();
+  formData.append('term', query);
+  formData.append('page_url', pageUrl);
+  formData.append('timestamp', nowIso);
+  formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
+  
+  fetch(CONFIG.WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  })
+  .then(() => {
+    // Show success message in side panel
+    const results = document.getElementById('jdp-results');
+    if (results) {
+      results.innerHTML = `
+        <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+          <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted</div>
+          <div style="color: #155724; font-size: 14px; line-height: 1.5;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
+        </div>
+      `;
+    }
+  })
+  .catch((error) => {
+    console.error("Request failed:", error);
+    const results = document.getElementById('jdp-results');
+    if (results) {
+      results.innerHTML = `
+        <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+          <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
+          <div style="color: #721c24; font-size: 14px; line-height: 1.5;">Failed to submit request for "${query}". Please try again.</div>
+        </div>
+      `;
+    }
+  });
+}
+
+// Make requestDefinitionFromSidePanel globally accessible
+window.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
 
 function showFloatingPopup(selection) {
   // Create floating popup element
