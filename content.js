@@ -4,6 +4,9 @@ window.addEventListener("keyup", handleSelection);
 var selectedText;
 var floatingPopup = null;
 
+// Webhook URL for requesting definitions
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
+
 function handleSelection() {
   const selection = window.getSelection();
   selectedText = selection.toString().trim();
@@ -144,7 +147,97 @@ function showNoResult(query) {
     <div style="margin-bottom: 8px; color: #666;">
       No definition found for "${query}" in the Justice Definitions Project.
     </div>
-    <div style="display: flex; gap: 8px; align-items: center;">
+    <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+      <button id="requestBtn" 
+              style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+        Request Definition
+      </button>
+      <button onclick="this.parentElement.parentElement.remove()" 
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+        ✕
+      </button>
+    </div>
+  `;
+  
+  // Add click handler for request button
+  const requestBtn = floatingPopup.querySelector('#requestBtn');
+  if (requestBtn) {
+    requestBtn.onclick = function() {
+      requestDefinition(query);
+    };
+  }
+}
+
+function requestDefinition(query) {
+  if (!floatingPopup) return;
+  
+  // Show loading state
+  floatingPopup.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <span>Submitting request...</span>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  
+  // Get current page URL
+  const pageUrl = window.location.href;
+  const nowIso = new Date().toISOString();
+  
+  // Send request to webhook
+  fetch(WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      term: query, 
+      page_url: pageUrl, 
+      timestamp: nowIso 
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      showRequestSuccess(query);
+    } else {
+      showRequestError("Could not submit request.");
+    }
+  })
+  .catch(error => {
+    showRequestError("Network error submitting request.");
+  });
+}
+
+function showRequestSuccess(query) {
+  if (!floatingPopup) return;
+  
+  floatingPopup.innerHTML = `
+    <div style="margin-bottom: 8px;">
+      <strong style="color: #28a745;">✓ Request submitted</strong>
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+      Your request for "${query}" has been sent to the Justice Definitions Project team.
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+      <button onclick="this.parentElement.parentElement.remove()" 
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+        ✕
+      </button>
+    </div>
+  `;
+}
+
+function showRequestError(message) {
+  if (!floatingPopup) return;
+  
+  floatingPopup.innerHTML = `
+    <div style="color: #dc3545; margin-bottom: 8px;">
+      ⚠ ${message}
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
         ✕
