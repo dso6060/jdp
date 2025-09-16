@@ -6,19 +6,13 @@ document.addEventListener("contextmenu", handleRightClick);
 var selectedText;
 var floatingPopup = null;
 
-// Load configuration
-let CONFIG = {};
-if (typeof window.EXTENSION_CONFIG !== 'undefined') {
-  CONFIG = window.EXTENSION_CONFIG;
-} else {
-  // Fallback configuration
-  CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
-    WEBHOOK: {
-      ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
-    }
-  };
-}
+// Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
+let CONFIG = window.EXTENSION_CONFIG || {
+  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
+  WEBHOOK: {
+    ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
+  }
+};
 
 function handleRightClick(event) {
   const selection = window.getSelection();
@@ -279,13 +273,11 @@ function requestDefinition(query) {
 }
 
 function showRequestSuccess(query) {
-  if (!floatingPopup) {
-    console.error("showRequestSuccess: floatingPopup is null");
-    return;
-  }
-  
-  if (!document.body.contains(floatingPopup)) {
-    console.error("showRequestSuccess: floatingPopup is not in DOM");
+  // Check if popup exists and is in DOM
+  if (!floatingPopup || !document.body.contains(floatingPopup)) {
+    console.log("Popup not available, creating new one for success message");
+    // Create a new popup for the success message
+    createSuccessPopup(query);
     return;
   }
   
@@ -308,8 +300,62 @@ function showRequestSuccess(query) {
   `;
 }
 
+function createSuccessPopup(query) {
+  // Create a new popup for success message
+  const successPopup = document.createElement("div");
+  successPopup.id = "jdp-success-popup";
+  successPopup.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 10001;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+  `;
+  
+  successPopup.innerHTML = `
+    <div style="margin-bottom: 8px;">
+      <strong style="color: #28a745;">✓ Request Submitted Successfully</strong>
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+      Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+      <button onclick="this.parentElement.remove()" 
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
+        ✕ Close
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(successPopup);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (document.body.contains(successPopup)) {
+      successPopup.remove();
+    }
+  }, 5000);
+}
+
 function showRequestError(message) {
-  if (!floatingPopup) return;
+  // Check if popup exists and is in DOM
+  if (!floatingPopup || !document.body.contains(floatingPopup)) {
+    console.log("Popup not available, creating new one for error message");
+    // Create a new popup for the error message
+    createErrorPopup(message);
+    return;
+  }
   
   floatingPopup.innerHTML = `
     <div style="color: #dc3545; margin-bottom: 8px;">
@@ -328,6 +374,54 @@ function showRequestError(message) {
       </button>
     </div>
   `;
+}
+
+function createErrorPopup(message) {
+  // Create a new popup for error message
+  const errorPopup = document.createElement("div");
+  errorPopup.id = "jdp-error-popup";
+  errorPopup.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #dc3545;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 10001;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+  `;
+  
+  errorPopup.innerHTML = `
+    <div style="color: #dc3545; margin-bottom: 8px;">
+      <strong>⚠ Request Failed</strong>
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+      ${message}
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+      <button onclick="this.parentElement.remove()" 
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
+        ✕ Close
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(errorPopup);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (document.body.contains(errorPopup)) {
+      errorPopup.remove();
+    }
+  }, 5000);
 }
 
 function showError(message) {
