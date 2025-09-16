@@ -22,6 +22,12 @@ function initializeSidePanel() {
     });
   }
   
+  // Set up close button
+  const closeBtn = document.getElementById('closeBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeSidePanel);
+  }
+  
   // Check if we have a search query from the extension
   checkForSearchQuery();
 }
@@ -245,4 +251,9 @@ function showWikiHome() {
       <p>Try browsing the Justice Definitions Project knowledge base below.</p>
     </div>
   `;
+}
+
+function closeSidePanel() {
+  // Close the side panel by sending a message to the background script
+  chrome.runtime.sendMessage({ type: "CLOSE_SIDE_PANEL" });
 }

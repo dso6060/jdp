@@ -7,11 +7,15 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
-// Listen for messages from content scripts
+// Listen for messages from content scripts and side panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_SIDE_PANEL") {
     // Open side panel when requested from content script
     chrome.sidePanel.open({ windowId: sender.tab.windowId });
+    sendResponse({ success: true });
+  } else if (message.type === "CLOSE_SIDE_PANEL") {
+    // Close side panel when requested from side panel
+    chrome.sidePanel.close({ windowId: sender.tab.windowId });
     sendResponse({ success: true });
   }
   
