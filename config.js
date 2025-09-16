@@ -12,7 +12,10 @@ const CONFIG = {
     ENABLED: true,
     
     // Timeout for webhook requests (in milliseconds)
-    TIMEOUT: 10000
+    TIMEOUT: 10000,
+    
+    // Access key for authentication (must match Google Apps Script)
+    ACCESS_KEY: "JDP_2024_SECURE_KEY_CHANGE_THIS"
   },
   
   // API Configuration

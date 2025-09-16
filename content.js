@@ -1,6 +1,8 @@
 // Listen for right-click (context menu) to trigger lookup
 document.addEventListener("contextmenu", handleRightClick);
 
+// Message listener is defined later in the file
+
 var selectedText;
 var floatingPopup = null;
 
@@ -230,6 +232,12 @@ function requestDefinition(query) {
   timeField.value = nowIso;
   form.appendChild(timeField);
   
+  const accessKeyField = document.createElement('input');
+  accessKeyField.type = 'hidden';
+  accessKeyField.name = 'access_key';
+  accessKeyField.value = 'JDP_2024_SECURE_KEY_CHANGE_THIS';
+  form.appendChild(accessKeyField);
+  
   // Submit the form
   document.body.appendChild(form);
   form.submit();
@@ -317,11 +325,35 @@ document.addEventListener("click", function(event) {
 chrome.runtime.onMessage.addListener(onMessageReceived);
 
 function onMessageReceived(message, sender, sendResponse) {
-  let msg =
-    selectedText && selectedText.length > 0
-      ? selectedText
-      : "_TextNotSelected_";
+  if (message.type === "SEARCH_QUERY") {
+    // Store the search query for the side panel
+    chrome.storage.local.set({ lastSearchQuery: message.query });
+    
+    // Open the side panel
+    chrome.sidePanel.open({ windowId: sender.tab.windowId });
+    
+    sendResponse({ success: true });
+  } else if (message.txt === "hello from popup") {
+    // Legacy popup support - redirect to side panel
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText && selectedText !== "_TextNotSelected_") {
+      const cleanWord = selectedText.replace(/[^a-zA-Z ]/g, "");
+      chrome.storage.local.set({ lastSearchQuery: cleanWord });
+      chrome.sidePanel.open({ windowId: sender.tab.windowId });
+    }
+    
+    sendResponse({ selectedWord: selectedText || "_TextNotSelected_" });
+  } else {
+    // Default response for backward compatibility
+    let msg =
+      selectedText && selectedText.length > 0
+        ? selectedText
+        : "_TextNotSelected_";
 
-  // send the selected text to the popup.js as a response to the message.
-  sendResponse({ selectedWord: msg });
+    sendResponse({ selectedWord: msg });
+  }
+  
+  return true; // Keep message channel open for async response
 }

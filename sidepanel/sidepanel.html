@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Justice Definitions Project</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="header">
+    <h1>Justice Definitions Project</h1>
+    <p class="subtitle">Legal definitions at your fingertips</p>
+  </div>
+  
+  <div class="content" id="content">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">⚖️</div>
+      <h2>Welcome!</h2>
+      <p>Select text on any webpage and right-click to look up legal definitions.</p>
+      <p>Or browse the Justice Definitions Project knowledge base below.</p>
+    </div>
+    
+    <div class="search-section" id="searchSection" style="display: none;">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search for legal terms...">
+        <button id="searchBtn">Search</button>
+      </div>
+    </div>
+    
+    <div class="results" id="results">
+      <!-- Results will be populated here -->
+    </div>
+    
+    <div class="wiki-home" id="wikiHome" style="display: none;">
+      <div class="wiki-header">
+        <h3>Justice Definitions Project</h3>
+        <p>Open-source legal definitions knowledge base</p>
+      </div>
+      <div class="wiki-links">
+        <a href="https://jdc-definitions.wikibase.wiki/wiki/Main_Page" target="_blank" class="wiki-link">
+          <span class="link-icon">🏠</span>
+          <span class="link-text">Main Page</span>
+        </a>
+        <a href="https://jdc-definitions.wikibase.wiki/wiki/Special:AllPages" target="_blank" class="wiki-link">
+          <span class="link-icon">📚</span>
+          <span class="link-text">All Definitions</span>
+        </a>
+        <a href="https://jdc-definitions.wikibase.wiki/wiki/Special:Random" target="_blank" class="wiki-link">
+          <span class="link-icon">🎲</span>
+          <span class="link-text">Random Definition</span>
+        </a>
+        <a href="https://jdc-definitions.wikibase.wiki/wiki/Special:RecentChanges" target="_blank" class="wiki-link">
+          <span class="link-icon">🔄</span>
+          <span class="link-text">Recent Changes</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>Built on content from the Justice Definitions Project open-source team</p>
+  </div>
+  
+  <script src="../config.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

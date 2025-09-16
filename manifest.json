@@ -8,8 +8,10 @@
             "24": "assets/icon24.png",
             "32": "assets/icon32.png"
         },
-        "default_title": "Justice Definitions Project",
-        "default_popup": "popup/popup.html"
+        "default_title": "Justice Definitions Project"
+    },
+    "side_panel": {
+        "default_path": "sidepanel/sidepanel.html"
     },
     "web_accessible_resources": [
         {
@@ -35,7 +37,8 @@
       ],
       "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "sidePanel"
       ],
       "host_permissions": [
         "https://jdc-definitions.wikibase.wiki/*",
