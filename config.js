@@ -2,11 +2,12 @@
 // This file contains all configurable settings that can be modified without touching core code
 
 const CONFIG = {
+  // External Resource URLs (ALL-CAPS for easy identification by developers)
+  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+  API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
+  
   // Webhook Configuration
   WEBHOOK: {
-    // Default webhook URL for Justice Definitions Project team
-    DEFAULT_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
-    
     // Enable/disable webhook functionality
     ENABLED: true,
     
@@ -16,9 +17,6 @@ const CONFIG = {
   
   // API Configuration
   API: {
-    // Justice Definitions Project MediaWiki API endpoint
-    BASE_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
-    
     // Request timeout (in milliseconds)
     TIMEOUT: 15000
   },

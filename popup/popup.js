@@ -46,12 +46,13 @@ try {
 } catch (e) {
   // Fallback configuration if config.js is not available
   CONFIG = {
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+    API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
-      DEFAULT_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
       ENABLED: true
     },
     API: {
-      BASE_URL: "https://jdc-definitions.wikibase.wiki/w/api.php"
+      TIMEOUT: 15000
     },
     DISPLAY: {
       MAX_CHARS: 140,
@@ -62,7 +63,7 @@ try {
   };
 }
 
-let webhookUrl = CONFIG.WEBHOOK?.DEFAULT_URL || "";
+let webhookUrl = CONFIG.WEBHOOK_URL || "";
 
 // Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["webhookUrl"], (data) => {
@@ -78,7 +79,7 @@ let definitionText,
 // function to fetch and show definition on the popup from Justice Definitions Project
 async function searchJDPWiki(query) {
   try {
-    const api = CONFIG.API?.BASE_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
+    const api = CONFIG.API_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
     // First: search for the page
     const searchParams =
       "action=query&list=search&srprop=snippet&format=json&origin=*" +
