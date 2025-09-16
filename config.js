@@ -3,7 +3,7 @@
 
 const CONFIG = {
   // External Resource URLs (ALL-CAPS for easy identification by developers)
-  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbxE84LZB0y7sqKW9K_y1NGxKRTnNTL_gyxfUl2jWExwVCuQ89UKV8SWcKTYnjMM5J6N/exec",
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
   
   // Webhook Configuration
@@ -15,7 +15,7 @@ const CONFIG = {
     TIMEOUT: 10000,
     
     // Access key for authentication (must match Google Apps Script)
-    ACCESS_KEY: "JDP_2024_SECURE_KEY_CHANGE_THIS"
+    ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
   },
   
   // API Configuration
