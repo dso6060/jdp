@@ -24,10 +24,10 @@ function gotTabs(tabs) {
   // send message to the content script
   chrome.tabs.sendMessage(tabs[0].id, msg, function (response) {
     if (!response) {
-      document.getElementById("phonetic").innerHTML =
+      document.getElementById("status").innerHTML =
         "Refresh the page and try again.";
     } else if (response.swor === "_TextNotSelected_") {
-      document.getElementById("phonetic").innerHTML = "Welcome!";
+      document.getElementById("status").innerHTML = "Welcome!";
       document.getElementById("example").innerHTML =
         "Please select a word to find its definition.";
     } else {
@@ -137,7 +137,7 @@ function setValuesFromJDP() {
   document.getElementById(
     "word"
   ).innerHTML = `${word} <a href=${sourceurl} class="searchanchor" target="_blank"><img class="searchsvg" title="read more" src = "../assets/searchonweb.svg" alt="read more"/><a>`;
-  document.getElementById("phonetic").innerHTML = "";
+  document.getElementById("status").innerHTML = "";
   document.getElementById("definition").innerHTML = displayText;
   document.getElementById("example").innerHTML = "";
   const nav = document.getElementById("navigatecontainer");
@@ -213,12 +213,12 @@ function showNoResultUI(query) {
           body: JSON.stringify({ term: query, page_url: pageUrl, timestamp: nowIso })
         });
         if (resp.ok) {
-          document.getElementById("phonetic").innerHTML = "Request submitted.";
+          document.getElementById("status").innerHTML = "Request submitted.";
         } else {
-          document.getElementById("phonetic").innerHTML = "Could not submit request.";
+          document.getElementById("status").innerHTML = "Could not submit request.";
         }
       } catch (err) {
-        document.getElementById("phonetic").innerHTML = "Network error submitting request.";
+        document.getElementById("status").innerHTML = "Network error submitting request.";
       }
     };
   }
