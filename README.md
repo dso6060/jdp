@@ -51,14 +51,34 @@ This project implements a **two-way communication system** between the browser e
 - Extension automatically benefits from the growing knowledge base
 - Creates a feedback loop between users and legal experts
 
+### Configuration System
+
+**📁 Config File (`config.js`):**
+The extension uses a centralized configuration file that allows easy customization without modifying core code:
+
+- **Webhook Settings**: Default webhook URL for Justice Definitions Project team
+- **API Configuration**: MediaWiki API endpoints and timeouts
+- **Display Settings**: Character limits, word counts, and formatting options
+- **Extension Metadata**: Name, version, and description
+
+**🔧 Easy Configuration:**
+- Edit `config.js` to change webhook URLs, API endpoints, or display settings
+- No need to modify popup.js or other core files
+- Changes take effect after extension reload
+
+**⚠️ Webhook Configuration:**
+- **Default**: Requests automatically sent to Justice Definitions Project team
+- **Custom**: Users can override via Options page for personal webhook URLs
+- **No Setup Required**: Extension works out of the box with default webhook
+
 ### Known Issues & Troubleshooting
 
 **⚠️ Webhook Configuration (Optional):**
-- The "Request Definition" feature requires a Google Apps Script webhook URL
+- The "Request Definition" feature uses a default webhook URL (configurable in `config.js`)
 - If you see "Configure request endpoint first" error, this is normal - the webhook is optional
-- To enable request submissions: Right-click extension → Options → Enter your Apps Script URL
-- Without webhook: Extension works perfectly for looking up existing definitions
-- With webhook: Can submit requests for missing definitions to the Justice Definitions Project team
+- To use custom webhook: Right-click extension → Options → Enter your Apps Script URL
+- Without custom webhook: Extension works perfectly using default Justice Definitions Project webhook
+- With custom webhook: Can collect requests in your own Google Sheet
 
 ### Why “reliable” Justice Definitions
 

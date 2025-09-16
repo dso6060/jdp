@@ -11,6 +11,12 @@
         "default_title": "Justice Definitions Project",
         "default_popup": "popup/popup.html"
     },
+    "web_accessible_resources": [
+        {
+            "resources": ["config.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
     "options_page": "options/options.html",
     "description": "Make legal language accessible by connecting webpage selections to the Justice Definitions Project. Built for researchers, students, and practitioners.",
     "icons": {

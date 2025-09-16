@@ -38,10 +38,31 @@ function gotTabs(tabs) {
   });
 }
 
-// Permanent webhook URL for Justice Definitions Project
-const PERMANENT_WEBHOOK = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
+// Load configuration
+let CONFIG = {};
+try {
+  // Try to load config from config.js (will be injected by manifest)
+  CONFIG = window.EXTENSION_CONFIG || {};
+} catch (e) {
+  // Fallback configuration if config.js is not available
+  CONFIG = {
+    WEBHOOK: {
+      DEFAULT_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+      ENABLED: true
+    },
+    API: {
+      BASE_URL: "https://jdc-definitions.wikibase.wiki/w/api.php"
+    },
+    DISPLAY: {
+      MAX_CHARS: 140,
+      EXTENDED_CHARS: 200,
+      MAX_EXTENDED_CHARS: 250,
+      MIN_WORD_COUNT: 4
+    }
+  };
+}
 
-let APPS_SCRIPT_WEBHOOK = PERMANENT_WEBHOOK; // Use permanent webhook by default
+let APPS_SCRIPT_WEBHOOK = CONFIG.WEBHOOK?.DEFAULT_URL || "";
 
 // Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK"], (data) => {
@@ -57,7 +78,7 @@ let pageExtract,
 // function to fetch and show definition on the popup from Justice Definitions Project
 async function dictionary(query) {
   try {
-    const api = "https://jdc-definitions.wikibase.wiki/w/api.php";
+    const api = CONFIG.API?.BASE_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
     // First: search for the page
     const searchParams =
       "action=query&list=search&srprop=snippet&format=json&origin=*" +
@@ -128,13 +149,18 @@ function setValuesFromJDP() {
 function getOptimalDisplayText(text) {
   if (!text || text.length === 0) return "";
   
+  const maxChars = CONFIG.DISPLAY?.MAX_CHARS || 140;
+  const extendedChars = CONFIG.DISPLAY?.EXTENDED_CHARS || 200;
+  const maxExtendedChars = CONFIG.DISPLAY?.MAX_EXTENDED_CHARS || 250;
+  const minWordCount = CONFIG.DISPLAY?.MIN_WORD_COUNT || 4;
+  
   // If text is short enough, return as is
-  if (text.length <= 140) {
+  if (text.length <= maxChars) {
     return text;
   }
   
-  // Get first 140 characters
-  let truncated = text.slice(0, 140);
+  // Get first characters up to max limit
+  let truncated = text.slice(0, maxChars);
   
   // Check if we have a complete sentence (ends with .)
   if (truncated.endsWith('.')) {
@@ -148,8 +174,8 @@ function getOptimalDisplayText(text) {
   }
   
   // If no complete sentence, extend until we find a period or reach reasonable limit
-  let extended = text.slice(0, 200); // Extend to 200 characters max
-  const nextPeriodIndex = extended.indexOf('.', 140);
+  let extended = text.slice(0, extendedChars);
+  const nextPeriodIndex = extended.indexOf('.', maxChars);
   
   if (nextPeriodIndex > 0) {
     return extended.slice(0, nextPeriodIndex + 1);
@@ -157,10 +183,10 @@ function getOptimalDisplayText(text) {
   
   // If still no period, check word count
   const wordCount = truncated.split(/\s+/).length;
-  if (wordCount < 4) {
-    // If less than 4 words, extend to get more meaningful content
-    extended = text.slice(0, 250); // Extend further
-    const nextSpaceIndex = extended.indexOf(' ', 140);
+  if (wordCount < minWordCount) {
+    // If less than minimum words, extend to get more meaningful content
+    extended = text.slice(0, maxExtendedChars);
+    const nextSpaceIndex = extended.indexOf(' ', maxChars);
     if (nextSpaceIndex > 0) {
       return extended.slice(0, nextSpaceIndex) + "…";
     }
