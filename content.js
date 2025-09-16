@@ -6,8 +6,19 @@ document.addEventListener("contextmenu", handleRightClick);
 var selectedText;
 var floatingPopup = null;
 
-// Webhook URL for requesting definitions
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
+// Load configuration
+let CONFIG = {};
+if (typeof window.EXTENSION_CONFIG !== 'undefined') {
+  CONFIG = window.EXTENSION_CONFIG;
+} else {
+  // Fallback configuration
+  CONFIG = {
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+    WEBHOOK: {
+      ACCESS_KEY: "JDP_2024_SECURE_KEY_CHANGE_THIS"
+    }
+  };
+}
 
 function handleRightClick(event) {
   const selection = window.getSelection();
@@ -205,12 +216,12 @@ function requestDefinition(query) {
   };
   
   console.log("Sending webhook request:", requestData);
-  console.log("Webhook URL:", WEBHOOK_URL);
+  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
   
   // Use a simple form submission approach that works with Google Apps Script
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = WEBHOOK_URL;
+  form.action = CONFIG.WEBHOOK_URL;
   form.style.display = 'none';
   
   // Add form fields
@@ -235,7 +246,7 @@ function requestDefinition(query) {
   const accessKeyField = document.createElement('input');
   accessKeyField.type = 'hidden';
   accessKeyField.name = 'access_key';
-  accessKeyField.value = 'JDP_2024_SECURE_KEY_CHANGE_THIS';
+  accessKeyField.value = CONFIG.WEBHOOK.ACCESS_KEY;
   form.appendChild(accessKeyField);
   
   // Submit the form
@@ -253,10 +264,27 @@ function requestDefinition(query) {
   setTimeout(() => {
     showRequestSuccess(query);
   }, 800);
+  
+  // Also add a test to verify the popup is still there
+  setTimeout(() => {
+    if (!floatingPopup || !document.body.contains(floatingPopup)) {
+      console.error("Floating popup was removed before success message could be shown");
+    }
+  }, 500);
 }
 
 function showRequestSuccess(query) {
-  if (!floatingPopup) return;
+  if (!floatingPopup) {
+    console.error("showRequestSuccess: floatingPopup is null");
+    return;
+  }
+  
+  if (!document.body.contains(floatingPopup)) {
+    console.error("showRequestSuccess: floatingPopup is not in DOM");
+    return;
+  }
+  
+  console.log("Showing success message for query:", query);
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
@@ -329,8 +357,8 @@ function onMessageReceived(message, sender, sendResponse) {
     // Store the search query for the side panel
     chrome.storage.local.set({ lastSearchQuery: message.query });
     
-    // Open the side panel
-    chrome.sidePanel.open({ windowId: sender.tab.windowId });
+    // Request background script to open side panel
+    chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
     
     sendResponse({ success: true });
   } else if (message.txt === "hello from popup") {
@@ -341,7 +369,7 @@ function onMessageReceived(message, sender, sendResponse) {
     if (selectedText && selectedText !== "_TextNotSelected_") {
       const cleanWord = selectedText.replace(/[^a-zA-Z ]/g, "");
       chrome.storage.local.set({ lastSearchQuery: cleanWord });
-      chrome.sidePanel.open({ windowId: sender.tab.windowId });
+      chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
     }
     
     sendResponse({ selectedWord: selectedText || "_TextNotSelected_" });

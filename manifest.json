@@ -27,6 +27,9 @@
       "128": "assets/icon128.png"
     },
     "author": "SandeepKrSuman",
+    "background": {
+        "service_worker": "background.js"
+    },
     "content_scripts": [
         {
           "matches": [
