@@ -64,9 +64,9 @@ async function dictionary(query) {
       const title = first.title;
       const pageid = first.pageid;
 
-      // Second: fetch a plain-text intro extract for that page id
+      // Second: fetch a plain-text intro extract for that page id (get more content for better sentences)
       const extractParams =
-        `action=query&prop=extracts&explaintext=1&exintro=1&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
+        `action=query&prop=extracts&explaintext=1&exintro=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
       const extractResp = await fetch(`${api}?${extractParams}`);
       const extractData = await extractResp.json();
 
@@ -105,17 +105,63 @@ async function dictionary(query) {
 }
 
 function setValuesFromJDP() {
-  const truncated = pageExtract.length > 140 ? pageExtract.slice(0, 140) + "…" : pageExtract;
+  let displayText = getOptimalDisplayText(pageExtract);
+  
   document.getElementById(
     "word"
   ).innerHTML = `${word} <a href=${sourceurl} class="searchanchor" target="_blank"><img class="searchsvg" title="read more" src = "../assets/searchonweb.svg" alt="read more"/><a>`;
   document.getElementById("phonetic").innerHTML = "";
-  document.getElementById("definition").innerHTML = truncated;
+  document.getElementById("definition").innerHTML = displayText;
   document.getElementById("example").innerHTML = "";
   const nav = document.getElementById("navigatecontainer");
   if (nav && !nav.classList.contains("hidenavigator")) {
     nav.classList.add("hidenavigator");
   }
+}
+
+function getOptimalDisplayText(text) {
+  if (!text || text.length === 0) return "";
+  
+  // If text is short enough, return as is
+  if (text.length <= 140) {
+    return text;
+  }
+  
+  // Get first 140 characters
+  let truncated = text.slice(0, 140);
+  
+  // Check if we have a complete sentence (ends with .)
+  if (truncated.endsWith('.')) {
+    return truncated;
+  }
+  
+  // Find the last complete sentence within 140 characters
+  const lastPeriodIndex = truncated.lastIndexOf('.');
+  if (lastPeriodIndex > 0) {
+    return truncated.slice(0, lastPeriodIndex + 1);
+  }
+  
+  // If no complete sentence, extend until we find a period or reach reasonable limit
+  let extended = text.slice(0, 200); // Extend to 200 characters max
+  const nextPeriodIndex = extended.indexOf('.', 140);
+  
+  if (nextPeriodIndex > 0) {
+    return extended.slice(0, nextPeriodIndex + 1);
+  }
+  
+  // If still no period, check word count
+  const wordCount = truncated.split(/\s+/).length;
+  if (wordCount < 4) {
+    // If less than 4 words, extend to get more meaningful content
+    extended = text.slice(0, 250); // Extend further
+    const nextSpaceIndex = extended.indexOf(' ', 140);
+    if (nextSpaceIndex > 0) {
+      return extended.slice(0, nextSpaceIndex) + "…";
+    }
+  }
+  
+  // Fallback: return truncated with ellipsis
+  return truncated + "…";
 }
 
 function showNoResultUI(query) {
