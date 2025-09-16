@@ -59,6 +59,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sidePanelStatus.set(windowId, false);
     }
     sendResponse({ success: true });
+  } else if (message.type === "SIDE_PANEL_CLOSED") {
+    // Side panel is being closed - update status
+    const windowId = message.windowId || sender.tab?.windowId;
+    if (windowId) {
+      console.log("Side panel closed for window:", windowId);
+      sidePanelStatus.set(windowId, false);
+    }
+    sendResponse({ success: true });
   }
   
   return true; // Keep message channel open
@@ -70,4 +78,31 @@ chrome.runtime.onInstalled.addListener(() => {
   
   // Note: Extension pinning is handled by the user manually in Chrome
   // chrome.action.setPinned is not available in Manifest V3
+});
+
+// Listen for tab updates to detect when side panel might be closed
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // If the tab is being replaced or updated, we might need to reset side panel status
+  if (changeInfo.status === 'complete') {
+    // Check if side panel is still open for this window
+    chrome.windows.get(tab.windowId, (window) => {
+      if (window) {
+        // We can't directly check if side panel is open, but we can reset status
+        // if the tab was completely reloaded
+        if (changeInfo.url) {
+          console.log("Tab updated, resetting side panel status for window:", tab.windowId);
+          sidePanelStatus.set(tab.windowId, false);
+        }
+      }
+    });
+  }
+});
+
+// Listen for window focus changes to detect side panel closure
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    // No window is focused, reset all side panel statuses
+    console.log("No window focused, resetting all side panel statuses");
+    sidePanelStatus.clear();
+  }
 });

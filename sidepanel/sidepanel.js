@@ -31,6 +31,12 @@ function initializeSidePanel() {
   // Set up click-outside functionality
   setupClickOutsideHandler();
   
+  // Set up beforeunload listener to detect when side panel is closed
+  window.addEventListener('beforeunload', function() {
+    // Notify background script that side panel is being closed
+    chrome.runtime.sendMessage({ type: "SIDE_PANEL_CLOSED" });
+  });
+  
   // Check if we have a search query from the extension
   checkForSearchQuery();
 }
@@ -287,5 +293,10 @@ function closeSidePanel() {
   console.log("Close button clicked, sending close message");
   chrome.runtime.sendMessage({ type: "CLOSE_SIDE_PANEL" }, (response) => {
     console.log("Close response:", response);
+  });
+  
+  // Also notify that the side panel is being closed
+  chrome.runtime.sendMessage({ type: "SIDE_PANEL_CLOSED" }, (response) => {
+    console.log("Side panel closed notification sent:", response);
   });
 }

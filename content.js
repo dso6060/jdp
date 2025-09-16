@@ -54,6 +54,13 @@ function handleRightClick(event) {
   event.preventDefault();
 }
 
+// Function to refresh side panel status (can be called periodically)
+function refreshSidePanelStatus() {
+  chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
+    console.log("Side panel status refreshed:", response);
+  });
+}
+
 function showFloatingPopup(selection) {
   // Create floating popup element
   floatingPopup = document.createElement("div");
@@ -364,6 +371,11 @@ function onMessageReceived(message, sender, sendResponse) {
     // Request background script to open side panel
     chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
     
+    sendResponse({ success: true });
+  } else if (message.type === "SIDE_PANEL_CLOSED") {
+    // Side panel was closed - refresh status
+    console.log("Side panel closed notification received");
+    refreshSidePanelStatus();
     sendResponse({ success: true });
   } else if (message.txt === "hello from popup") {
     // Legacy popup support - redirect to side panel
