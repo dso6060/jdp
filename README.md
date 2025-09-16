@@ -14,15 +14,35 @@ grounded in Indian legal context while remaining easy to consult during everyday
 <br>
 
 
-### Demo 🎥
+### Installation 🧩
 
-Coming soon
+**Chrome Extension (Development Version):**
+1. Download or clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" (toggle in top right)
+4. Click "Load unpacked" and select this project folder
+5. The extension will appear in your Chrome toolbar
 
 ### What this extension does
 
 - Select any word/term on a webpage and open the extension popup
 - The extension searches the Justice Definitions Project for the most relevant page
 - It displays the first 140 characters from the page intro and links to the source, so you can read more in context
+
+### Known Issues & Troubleshooting
+
+**⚠️ Webhook Configuration (Optional):**
+- The "Request Definition" feature requires a Google Apps Script webhook URL
+- If you see "Configure request endpoint first" error, this is normal - the webhook is optional
+- To enable request submissions: Right-click extension → Options → Enter your Apps Script URL
+- Without webhook: Extension works perfectly for looking up existing definitions
+- With webhook: Can submit requests for missing definitions to a Google Sheet
+
+**Icon Not Updating:**
+- If the extension still shows the old "Aa" icon instead of "J":
+  1. Go to `chrome://extensions/`
+  2. Click the refresh icon on the extension
+  3. Or remove and reload the extension
 
 ### Why “reliable” Justice Definitions
 
@@ -69,6 +89,22 @@ to the source. Prior versions referenced the Free Dictionary API for general‑p
 ### Built on Justice Definitions content
 
 This browser extension is a plugin built on top of the content created and maintained by the open‑source team behind the **Justice Definitions Project**. We gratefully acknowledge their work in curating reliable legal definitions and citations.
+
+### Repository Status
+
+**🔓 Public Repository:** This project is open source and publicly available on GitHub.
+
+**📋 Current Status:**
+- ✅ Core functionality working (JDP lookups)
+- ✅ Clean J-themed icons
+- ✅ Optional webhook configuration
+- ⚠️ Webhook setup requires manual Google Apps Script configuration
+- 🔄 Version 0.5.1 (latest)
+
+**🐛 Known Issues:**
+1. **Webhook Error Messages:** Users may see "Configure request endpoint first" - this is expected behavior when no webhook is configured
+2. **Icon Caching:** Chrome may cache old icons - refresh extension to see new J icon
+3. **Development Only:** This is a development version, not published to Chrome Web Store
 
 <br>
 
