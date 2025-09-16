@@ -38,14 +38,11 @@ function onTabsReceived(tabs) {
   });
 }
 
-// Load configuration
-let CONFIG = {};
-try {
-  // Try to load config from config.js (will be injected by manifest)
-  CONFIG = window.EXTENSION_CONFIG || {};
-} catch (e) {
+// Load configuration from config.js
+// CONFIG is already declared globally in config.js, so we just use it
+if (typeof CONFIG === 'undefined') {
   // Fallback configuration if config.js is not available
-  CONFIG = {
+  window.CONFIG = {
     WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
