@@ -71,15 +71,6 @@ The extension uses a centralized configuration file that allows easy customizati
 - **Custom**: Users can override via Options page for personal webhook URLs
 - **No Setup Required**: Extension works out of the box with default webhook
 
-### Known Issues & Troubleshooting
-
-**⚠️ Webhook Configuration (Optional):**
-- The "Request Definition" feature uses a default webhook URL (configurable in `config.js`)
-- If you see "Configure request endpoint first" error, this is normal - the webhook is optional
-- To use custom webhook: Right-click extension → Options → Enter your Apps Script URL
-- Without custom webhook: Extension works perfectly using default Justice Definitions Project webhook
-- With custom webhook: Can collect requests in your own Google Sheet
-
 ### Why “reliable” Justice Definitions
 
 We are evolving this effort toward an expert‑curated, credible knowledge base for legal terminology.
