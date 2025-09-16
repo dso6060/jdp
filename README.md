@@ -34,15 +34,37 @@ The extension provides multiple ways to access legal definitions:
 
 #### **Side Panel (Extended Browsing)**
 - **Click Extension Icon**: Opens a dedicated side panel (25% of window width)
-- **Persistent Interface**: Keep the panel open while browsing multiple pages
-- **Search Bar**: Manual search for legal terms
-- **Wiki Integration**: Direct access to Justice Definitions Project pages
-- **Auto-Refresh**: Panel updates when new text is selected
+- **Default MediaWiki Content**: Shows Justice Definitions Project main page by default
+- **Embedded Browsing**: Full wiki pages displayed directly in the side panel
+- **Search Integration**: Search results appear above the embedded content
+- **Click-Outside Closure**: Click anywhere outside the panel to close it
+- **Seamless Navigation**: Click search results to view full definitions in the panel
 
 #### **Smart Features**
 - **Context-Aware**: Automatically detects if side panel is open vs. closed
 - **Seamless Integration**: Works on any webpage without interference
 - **Responsive Design**: Adapts to different screen sizes and content lengths
+
+### Side Panel Features
+
+The side panel provides a comprehensive browsing experience with the Justice Definitions Project:
+
+**🏠 Default Content:**
+- **MediaWiki Integration**: Justice Definitions Project main page loads by default
+- **Embedded Browsing**: Full wiki pages displayed directly within the panel
+- **Persistent Interface**: Keep the panel open while browsing multiple web pages
+
+**🔍 Search & Navigation:**
+- **Search Bar**: Manual search for legal terms and definitions
+- **Result Display**: Search results appear above the embedded content
+- **Direct Navigation**: Click any search result to view the full definition in the panel
+- **Seamless Switching**: Easy transition between search results and full wiki pages
+
+**🎯 User Experience:**
+- **Click-Outside Closure**: Click anywhere outside the panel to close it
+- **No Popup Conflicts**: When panel is open, right-click selections go directly to the panel
+- **Responsive Layout**: Adapts to different screen sizes and content lengths
+- **Clean Interface**: Minimal, focused design for optimal reading experience
 
 ### Two-Way Communication System
 
@@ -75,7 +97,10 @@ This extension is built on the **Justice Definitions Project** - an expert-curat
 
 **🎯 Core Features:**
 - ✅ **Right-click Definition Lookup** - Instant floating popups on text selection
-- ✅ **Side Panel Interface** - Dedicated 25% width panel for extended browsing
+- ✅ **Enhanced Side Panel Interface** - Dedicated 25% width panel with embedded MediaWiki
+- ✅ **Default MediaWiki Content** - Justice Definitions Project main page loads by default
+- ✅ **Click-Outside Closure** - Intuitive panel closing by clicking outside
+- ✅ **Embedded Definition Viewing** - Full wiki pages displayed directly in side panel
 - ✅ **Smart Context Detection** - Automatically switches between popup and panel modes
 - ✅ **Two-way Communication** - Pull definitions and submit requests for missing terms
 - ✅ **Centralized Configuration** - Easy customization via `config.js`
@@ -105,21 +130,26 @@ This extension is built on the **Justice Definitions Project** - an expert-curat
 
 **🆕 New Features:**
 - **Right-click Integration** - Primary method for instant definition lookup
-- **Side Panel Interface** - Dedicated browsing panel with search functionality
+- **Enhanced Side Panel Interface** - Dedicated browsing panel with embedded MediaWiki content
+- **Default MediaWiki Display** - Justice Definitions Project main page loads by default in side panel
+- **Click-Outside Panel Closure** - Intuitive closing by clicking anywhere outside the panel
+- **Embedded Definition Viewing** - Full wiki pages displayed directly within the side panel
 - **Smart Mode Detection** - Automatically switches between popup and panel based on context
 - **Enhanced Webhook System** - Updated Google Apps Script integration for definition requests
 
 **🔧 Improvements:**
 - **Code Cleanup** - Removed redundant functions and temporary files
 - **Performance Optimization** - Streamlined content scripts and background processing
-- **UI/UX Enhancements** - Better popup positioning and responsive design
+- **UI/UX Enhancements** - Better popup positioning, responsive design, and seamless navigation
 - **Configuration Management** - Centralized settings in `config.js`
+- **Enhanced User Experience** - Seamless transition between search results and full definitions
 
 **🐛 Bug Fixes:**
 - Fixed reference to non-existent SVG assets
 - Resolved popup positioning issues
 - Improved error handling for webhook requests
 - Enhanced cross-origin request compatibility
+- Fixed side panel content display and navigation issues
 
 ### License
 
