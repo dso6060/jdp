@@ -39,7 +39,7 @@ const CONFIG = {
   // Extension Metadata
   EXTENSION: {
     NAME: "Justice Definitions Project",
-    VERSION: "0.5.1",
+    VERSION: "0.6.0",
     DESCRIPTION: "Make legal language accessible by connecting webpage selections to the Justice Definitions Project"
   }
 };
