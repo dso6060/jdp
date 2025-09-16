@@ -13,9 +13,9 @@ if (typeof window.EXTENSION_CONFIG !== 'undefined') {
 } else {
   // Fallback configuration
   CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbxE84LZB0y7sqKW9K_y1NGxKRTnNTL_gyxfUl2jWExwVCuQ89UKV8SWcKTYnjMM5J6N/exec",
     WEBHOOK: {
-      ACCESS_KEY: "JDP_2024_SECURE_KEY_CHANGE_THIS"
+      ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
     }
   };
 }

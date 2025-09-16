@@ -43,7 +43,7 @@ function onTabsReceived(tabs) {
 if (typeof CONFIG === 'undefined') {
   // Fallback configuration if config.js is not available
   window.CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbxE84LZB0y7sqKW9K_y1NGxKRTnNTL_gyxfUl2jWExwVCuQ89UKV8SWcKTYnjMM5J6N/exec",
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
       ENABLED: true
