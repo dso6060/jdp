@@ -1,5 +1,5 @@
-window.addEventListener("mouseup", handleSelection);
-window.addEventListener("keyup", handleSelection);
+// Listen for right-click (context menu) to trigger lookup
+document.addEventListener("contextmenu", handleRightClick);
 
 var selectedText;
 var floatingPopup = null;
@@ -7,9 +7,14 @@ var floatingPopup = null;
 // Webhook URL for requesting definitions
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
 
-function handleSelection() {
+function handleRightClick(event) {
   const selection = window.getSelection();
   selectedText = selection.toString().trim();
+  
+  // Only proceed if there's meaningful text selected (more than 2 characters)
+  if (!selectedText || selectedText.length <= 2) {
+    return;
+  }
   
   // Remove any existing floating popup
   if (floatingPopup) {
@@ -17,10 +22,11 @@ function handleSelection() {
     floatingPopup = null;
   }
   
-  // Only show popup if meaningful text is selected (more than 2 characters)
-  if (selectedText && selectedText.length > 2) {
-    showFloatingPopup(selection);
-  }
+  // Show the floating popup
+  showFloatingPopup(selection);
+  
+  // Prevent the default context menu from appearing
+  event.preventDefault();
 }
 
 function showFloatingPopup(selection) {
