@@ -101,27 +101,6 @@ designation reflects the ongoing work to formalise governance, review, and publi
 If you’re an expert or institution and would like to participate in curation,
 please open an issue or reach out to collaborate.
 
-### Open Source
-
-This repository is open source. Developers can use it as a reference to build their own extensions
-or contribute enhancements here. Please attribute the original author and the Justice Definitions
-Project when reusing significant parts of the code or documentation.
-
-<br>
-
-### Attribution
-
-Part of this code-base was originally created and open‑sourced by **[Sandeep Suman](https://github.com/SandeepKrSuman)**.
-The current version adapts the lookup to use the **Justice Definitions Project** (MediaWiki) as the primary
-data source for legal terms, fetching a page intro and displaying the first 140 characters with a link back
-to the source. Prior versions referenced the Free Dictionary API for general‑purpose terms.
-
-- Original author: [SandeepKrSuman](https://github.com/SandeepKrSuman)
-- Previous data source: [freeDictionaryAPI](https://github.com/meetDeveloper/freeDictionaryAPI)
-- Current data source: <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>
-
-<br>
-
 ### Built on Justice Definitions content
 
 This browser extension is a plugin built on top of the content created and maintained by the open‑source team behind the **Justice Definitions Project**. We gratefully acknowledge their work in curating reliable legal definitions and citations.
@@ -133,19 +112,23 @@ This browser extension is a plugin built on top of the content created and maint
 **📋 Current Status:**
 - ✅ Core functionality working (JDP lookups)
 - ✅ Two-way communication system implemented
-- ✅ Optional webhook configuration for community contributions
-- ⚠️ Webhook setup requires manual Google Apps Script configuration
+- ✅ Centralized configuration system (`config.js`)
+- ✅ Default webhook for Justice Definitions Project team
+- ✅ Optional custom webhook configuration
 - 🔄 Version 0.5.1 (latest)
 
 **🐛 Known Issues:**
-1. **Webhook Error Messages:** Users may see "Configure request endpoint first" - this is expected behavior when no webhook is configured
-2. **Development Only:** This is a development version, not published to Chrome Web Store
+1. **Development Only:** This is a development version, not published to Chrome Web Store
 
-<br>
+### Open Source
+
+This repository is open source. Developers can use it as a reference to build their own extensions
+or contribute enhancements here. The extension uses a centralized configuration system that makes
+it easy to customize webhook URLs, API endpoints, and display settings without modifying core code.
 
 ### License
 
-[MIT](LICENSE) © [SandeepKrSuman](https://github.com/SandeepKrSuman)
+[MIT](LICENSE)
 
 
  
