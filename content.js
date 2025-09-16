@@ -10,8 +10,20 @@ var sidePanelOverlay = null;
 // Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
 let CONFIG = window.EXTENSION_CONFIG || {
   WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
+  API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
   WEBHOOK: {
+    ENABLED: true,
+    TIMEOUT: 10000,
     ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
+  },
+  API: {
+    TIMEOUT: 15000
+  },
+  DISPLAY: {
+    MAX_CHARS: 140,
+    EXTENDED_CHARS: 200,
+    MAX_EXTENDED_CHARS: 250,
+    MIN_WORD_COUNT: 4
   }
 };
 
