@@ -64,15 +64,18 @@ A Chrome extension that provides instant access to legal definitions from the [J
 ## Features
 
 ### Core Features
-- ✅ **Right-click definition lookup** - Instant floating popups
+- ✅ **Right-click definition lookup** - Instant floating popups with real API data
 - ✅ **Sliding overlay panel** - 400px width overlay that slides in from right
 - ✅ **Non-disruptive design** - Overlay appears on top without affecting webpage
 - ✅ **Smooth animations** - 0.3s slide transitions for professional UX
 - ✅ **Click-outside closure** - Intuitive closing by clicking outside overlay
-- ✅ **Built-in search** - Search functionality within the overlay
+- ✅ **Built-in search** - Real-time search functionality within the overlay
 - ✅ **Smart context detection** - Auto-switches between popup and overlay modes
 - ✅ **Two-way communication** - Pull definitions and submit requests
 - ✅ **Request definition system** - Submit missing terms via webhook integration
+- ✅ **Google Sheet integration** - Automatic data collection for expert review
+- ✅ **Comprehensive error handling** - Robust error recovery and user feedback
+- ✅ **Extension context validation** - Prevents crashes during extension reloads
 
 ### Request System
 - **📥 Pull Data**: Queries Justice Definitions Project MediaWiki API for definitions
@@ -92,18 +95,44 @@ Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki
 ## Technical Details
 
 - **Manifest V3** - Latest Chrome extension standard
-- **Service Worker** - Efficient background processing
+- **Service Worker** - Efficient background processing with message handling
 - **Content Scripts** - Seamless webpage integration with overlay system
 - **Custom Overlay System** - Sliding div-based panel (no iframes)
 - **Storage API** - Persistent user preferences
 - **Cross-origin Requests** - Secure API communication
 - **FormData Webhook** - Reliable data submission without navigation
+- **Event Listener Architecture** - Proper function scope and error handling
+- **Extension Context Validation** - Prevents crashes during reloads
+- **Comprehensive Debugging** - Detailed logging for troubleshooting
+- **Fallback Mechanisms** - Multiple function exposure methods for reliability
 
 ## Status
 
-- ✅ **Version 0.6.0** - Latest stable release
+- ✅ **Version 0.8.0** - Latest stable release with full webhook integration
 - ⚠️ **Development version** - Not published to Chrome Web Store
 - 🔓 **Open Source** - Available for reference and contributions
+
+## Recent Updates (v0.8.0)
+
+### ✅ **Webhook Integration Fixed**
+- **Fixed function scope issues** that prevented webhook requests from side panel
+- **Replaced problematic inline onclick** with proper event listeners
+- **Added comprehensive error handling** and debugging capabilities
+- **Implemented multiple fallback mechanisms** for reliable function execution
+- **Enhanced user feedback** with detailed success/error messages
+
+### ✅ **Enhanced Debugging & Reliability**
+- **Comprehensive console logging** for webhook debugging
+- **Extension context validation** to prevent crashes
+- **FormData validation** and request monitoring
+- **User-friendly error alerts** when functions aren't available
+- **Robust error handling** for all webhook operations
+
+### ✅ **Improved User Experience**
+- **Smooth button interactions** with proper event handling
+- **Clear feedback messages** for all user actions
+- **Professional loading states** during webhook requests
+- **Graceful error recovery** with helpful user guidance
 
 ### License
 
