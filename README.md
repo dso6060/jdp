@@ -29,6 +29,28 @@ grounded in Indian legal context while remaining easy to consult during everyday
 - The extension searches the Justice Definitions Project for the most relevant page
 - It displays the first 140 characters from the page intro and links to the source, so you can read more in context
 
+### Two-Way Communication System
+
+This project implements a **two-way communication system** between the browser extension and the Justice Definitions Project:
+
+**📥 Pull Data (Primary Function):**
+- Extension queries the Justice Definitions Project MediaWiki API
+- Retrieves and displays legal definitions from the curated knowledge base
+- Provides instant access to expert-reviewed legal terminology
+- Links back to the full wiki page for comprehensive information
+
+**📤 Send Requests (Community Contribution):**
+- When definitions are not found, users can submit requests for missing terms
+- Requests are sent to the Justice Definitions Project team via webhook integration
+- Enables community-driven expansion of the legal definitions database
+- Helps identify gaps in coverage for the expert curation team
+
+**🔄 Continuous Improvement:**
+- User requests inform the Justice Definitions Project team about needed definitions
+- Expert curators review and add new definitions based on community needs
+- Extension automatically benefits from the growing knowledge base
+- Creates a feedback loop between users and legal experts
+
 ### Known Issues & Troubleshooting
 
 **⚠️ Webhook Configuration (Optional):**
@@ -36,13 +58,7 @@ grounded in Indian legal context while remaining easy to consult during everyday
 - If you see "Configure request endpoint first" error, this is normal - the webhook is optional
 - To enable request submissions: Right-click extension → Options → Enter your Apps Script URL
 - Without webhook: Extension works perfectly for looking up existing definitions
-- With webhook: Can submit requests for missing definitions to a Google Sheet
-
-**Icon Not Updating:**
-- If the extension still shows the old "Aa" icon instead of "J":
-  1. Go to `chrome://extensions/`
-  2. Click the refresh icon on the extension
-  3. Or remove and reload the extension
+- With webhook: Can submit requests for missing definitions to the Justice Definitions Project team
 
 ### Why “reliable” Justice Definitions
 
@@ -96,15 +112,14 @@ This browser extension is a plugin built on top of the content created and maint
 
 **📋 Current Status:**
 - ✅ Core functionality working (JDP lookups)
-- ✅ Clean J-themed icons
-- ✅ Optional webhook configuration
+- ✅ Two-way communication system implemented
+- ✅ Optional webhook configuration for community contributions
 - ⚠️ Webhook setup requires manual Google Apps Script configuration
 - 🔄 Version 0.5.1 (latest)
 
 **🐛 Known Issues:**
 1. **Webhook Error Messages:** Users may see "Configure request endpoint first" - this is expected behavior when no webhook is configured
-2. **Icon Caching:** Chrome may cache old icons - refresh extension to see new J icon
-3. **Development Only:** This is a development version, not published to Chrome Web Store
+2. **Development Only:** This is a development version, not published to Chrome Web Store
 
 <br>
 
