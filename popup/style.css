@@ -35,47 +35,8 @@ div {
   font-style: italic;
 }
 
-#example {
-  font-size: 1rem;
-  background-color: #e8f4fd;
-  border-left: 3px solid #0066cc;
-  padding-left: 12px;
-}
-
-.navigate-container {
-  display: flex;
-  justify-content: space-between;
-  text-align: center;
-  background-color: #ffffff;
-  border: 1px solid #e1e5e9;
-  border-radius: 4px;
-  margin: 8px 0;
-}
-
-.navigator {
-  text-decoration: none;
-  display: inline-block;
-  padding: 8px 16px;
-  color: #0066cc;
-  font-weight: 500;
-}
-
-.hidenavigator {
+.hidden {
   display: none;
-}
-
-.navigator:hover {
-  cursor: pointer;
-  background-color: #e8f4fd;
-  color: #004499;
-}
-
-.previous,
-.next {
-  background-color: #f8f9fa;
-  color: #0066cc;
-  border-radius: 4px;
-  margin: 4px;
 }
 
 .searchsvg {

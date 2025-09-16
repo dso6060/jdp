@@ -1,7 +1,7 @@
 // get the currently active tab in the current window
 // and then invoke the callback function gotTabs.
 let query = { active: true, currentWindow: true };
-chrome.tabs.query(query, gotTabs);
+chrome.tabs.query(query, onTabsReceived);
 
 // function to check current url and eliminate offline urls.
 function safeUrl(url) {
@@ -9,7 +9,7 @@ function safeUrl(url) {
 }
 
 // callback function
-function gotTabs(tabs) {
+function onTabsReceived(tabs) {
   // prevent offline urls to run the extension by throwing error.
   if (!safeUrl(tabs[0].url)) {
     document.getElementById("error").innerHTML = "Oh no!";
@@ -26,14 +26,14 @@ function gotTabs(tabs) {
     if (!response) {
       document.getElementById("status").innerHTML =
         "Refresh the page and try again.";
-    } else if (response.swor === "_TextNotSelected_") {
+    } else if (response.selectedWord === "_TextNotSelected_") {
       document.getElementById("status").innerHTML = "Welcome!";
       document.getElementById("example").innerHTML =
         "Please select a word to find its definition.";
     } else {
-      let swo = response.swor;
-      swo = swo.replace(/[^a-zA-Z ]/g, "");
-      dictionary(swo);
+      let selectedWord = response.selectedWord;
+      selectedWord = selectedWord.replace(/[^a-zA-Z ]/g, "");
+      searchJDPWiki(selectedWord);
     }
   });
 }
@@ -62,21 +62,21 @@ try {
   };
 }
 
-let APPS_SCRIPT_WEBHOOK = CONFIG.WEBHOOK?.DEFAULT_URL || "";
+let webhookUrl = CONFIG.WEBHOOK?.DEFAULT_URL || "";
 
 // Still allow custom webhook override from storage
-chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK"], (data) => {
-  if (data.APPS_SCRIPT_WEBHOOK && data.APPS_SCRIPT_WEBHOOK.trim() !== "") {
-    APPS_SCRIPT_WEBHOOK = data.APPS_SCRIPT_WEBHOOK;
+chrome.storage && chrome.storage.sync.get(["webhookUrl"], (data) => {
+  if (data.webhookUrl && data.webhookUrl.trim() !== "") {
+    webhookUrl = data.webhookUrl;
   }
 });
 
-let pageExtract,
-  word,
-  sourceurl;
+let definitionText,
+  term,
+  sourceUrl;
 
 // function to fetch and show definition on the popup from Justice Definitions Project
-async function dictionary(query) {
+async function searchJDPWiki(query) {
   try {
     const api = CONFIG.API?.BASE_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
     // First: search for the page
@@ -116,9 +116,9 @@ async function dictionary(query) {
           .trim();
       }
 
-      word = title;
-      sourceurl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
-      pageExtract = extractText;
+      term = title;
+      sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
+      definitionText = extractText;
 
       setValuesFromJDP();
     } else {
@@ -132,18 +132,13 @@ async function dictionary(query) {
 }
 
 function setValuesFromJDP() {
-  let displayText = getOptimalDisplayText(pageExtract);
+  let displayText = getOptimalDisplayText(definitionText);
   
   document.getElementById(
     "word"
-  ).innerHTML = `${word} <a href=${sourceurl} class="searchanchor" target="_blank"><img class="searchsvg" title="read more" src = "../assets/searchonweb.svg" alt="read more"/><a>`;
+  ).innerHTML = `${term} <a href=${sourceUrl} class="searchanchor" target="_blank"><img class="searchsvg" title="read more" src = "../assets/searchonweb.svg" alt="read more"/><a>`;
   document.getElementById("status").innerHTML = "";
   document.getElementById("definition").innerHTML = displayText;
-  document.getElementById("example").innerHTML = "";
-  const nav = document.getElementById("navigatecontainer");
-  if (nav && !nav.classList.contains("hidenavigator")) {
-    nav.classList.add("hidenavigator");
-  }
 }
 
 function getOptimalDisplayText(text) {
@@ -200,14 +195,14 @@ function showNoResultUI(query) {
   document.getElementById("error").innerHTML = "No result found";
   document.getElementById("definition").innerHTML = "";
   const btn = document.getElementById("requestBtn");
-  if (btn && APPS_SCRIPT_WEBHOOK) {
-    btn.classList.remove("hidenavigator");
+  if (btn && webhookUrl) {
+    btn.classList.remove("hidden");
     btn.onclick = async function () {
       const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const pageUrl = activeTabs && activeTabs[0] ? activeTabs[0].url : "";
       const nowIso = new Date().toISOString();
       try {
-        const resp = await fetch(APPS_SCRIPT_WEBHOOK, {
+        const resp = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ term: query, page_url: pageUrl, timestamp: nowIso })

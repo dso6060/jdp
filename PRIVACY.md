@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Thank you for using the **Dictionary Extension**. This Privacy Policy explains how we collect, use, and disclose information when you use the Extension. By installing and using the Extension, you agree to the terms outlined in this policy.
+Thank you for using the **Justice Definitions Extension**. This Privacy Policy explains how we collect, use, and disclose information when you use the Extension. By installing and using the Extension, you agree to the terms outlined in this policy.
 
 ## Information Collection and Usage:
 
@@ -40,8 +40,8 @@ We may update this Privacy Policy from time to time to reflect changes in our pr
 
 ## Contact Us:
 
-If you have any questions or concerns regarding this Privacy Policy or the Extension's privacy practices, please raise an issue [here](https://github.com/SandeepKrSuman/dictionary-extension/issues).
+If you have any questions or concerns regarding this Privacy Policy or the Extension's privacy practices, please raise an issue [here](https://github.com/dso6060/jdp/issues).
 
 By installing and using the Extension, you signify your understanding and acceptance of this Privacy Policy. If you do not agree with the terms outlined herein, please refrain from using the Extension.
 
-Thank you for choosing [Dictionary Extension](https://chrome.google.com/webstore/detail/dictionary/dlapopclhkmhhkmjhhaloapiiepbbnii)!
+Thank you for choosing the [Justice Definitions Extension](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project)!

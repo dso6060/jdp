@@ -7,14 +7,14 @@ function handleSelection() {
 }
 
 // receive the message from popup.
-chrome.runtime.onMessage.addListener(gotMessage);
+chrome.runtime.onMessage.addListener(onMessageReceived);
 
-function gotMessage(message, sender, sendResponse) {
+function onMessageReceived(message, sender, sendResponse) {
   let msg =
     selectedText && selectedText.length > 0
       ? selectedText
       : "_TextNotSelected_";
 
   // send the selected text to the popup.js as a response to the message.
-  sendResponse({ swor: msg });
+  sendResponse({ selectedWord: msg });
 }
