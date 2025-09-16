@@ -39,11 +39,9 @@ function gotTabs(tabs) {
 }
 
 let APPS_SCRIPT_WEBHOOK = ""; // loaded from chrome.storage
-let APPS_SCRIPT_TOKEN = ""; // loaded from chrome.storage
 
-chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK", "APPS_SCRIPT_TOKEN"], (data) => {
+chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK"], (data) => {
   APPS_SCRIPT_WEBHOOK = data.APPS_SCRIPT_WEBHOOK || "";
-  APPS_SCRIPT_TOKEN = data.APPS_SCRIPT_TOKEN || "";
 });
 
 let pageExtract,
@@ -134,14 +132,10 @@ function showNoResultUI(query) {
         document.getElementById("phonetic").innerHTML = "Configure request endpoint first.";
         return;
       }
-      if (!APPS_SCRIPT_TOKEN) {
-        document.getElementById("phonetic").innerHTML = "Configure webhook token.";
-        return;
-      }
       try {
         const resp = await fetch(APPS_SCRIPT_WEBHOOK, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-Webhook-Token": APPS_SCRIPT_TOKEN },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ term: query, page_url: pageUrl, timestamp: nowIso })
         });
         if (resp.ok) {
