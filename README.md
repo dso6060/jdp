@@ -8,6 +8,14 @@
 
 A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology. Built for researchers, students, and practitioners.
 
+## Demo
+
+<p align="center">
+  <img src="assets/jdp_demo.gif" alt="Justice Definitions Project Extension Demo" width="800" height="450">
+  <br>
+  <em>See the extension in action: Right-click on legal terms for instant definitions, or use the side panel for extended browsing.</em>
+</p>
+
 ## Installation
 
 1. Clone this repository
@@ -17,6 +25,8 @@ A Chrome extension that provides instant access to legal definitions from the [J
 5. Extension appears in toolbar
 
 ## Usage
+
+*Watch the demo above to see the extension in action!*
 
 ### Right-Click Lookup (Primary Method)
 1. **Select text** on any webpage
