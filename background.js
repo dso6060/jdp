@@ -20,8 +20,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (message.type === "CLOSE_SIDE_PANEL") {
     // Close side panel when requested from side panel
-    chrome.sidePanel.close({ windowId: sender.tab.windowId });
-    sidePanelStatus.set(sender.tab.windowId, false);
+    const windowId = message.windowId || sender.tab?.windowId;
+    if (windowId) {
+      chrome.sidePanel.close({ windowId: windowId });
+      sidePanelStatus.set(windowId, false);
+    }
     sendResponse({ success: true });
   } else if (message.type === "CHECK_SIDE_PANEL_STATUS") {
     // Check if side panel is open for this window
@@ -36,8 +39,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (message.type === "CLICK_OUTSIDE_SIDE_PANEL") {
     // Close side panel when clicked outside
-    const windowId = sender.tab.windowId;
-    if (sidePanelStatus.get(windowId)) {
+    const windowId = message.windowId || sender.tab?.windowId;
+    if (windowId && sidePanelStatus.get(windowId)) {
       chrome.sidePanel.close({ windowId: windowId });
       sidePanelStatus.set(windowId, false);
     }

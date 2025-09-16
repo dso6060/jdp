@@ -372,8 +372,13 @@ document.addEventListener("click", function(event) {
   // Check if click is outside side panel and send message to close it
   chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
     if (response && response.isOpen) {
-      // Side panel is open, send click outside message
-      chrome.runtime.sendMessage({ type: "CLICK_OUTSIDE_SIDE_PANEL" });
+      // Side panel is open, send click outside message with window ID
+      chrome.windows.getCurrent((window) => {
+        chrome.runtime.sendMessage({ 
+          type: "CLICK_OUTSIDE_SIDE_PANEL", 
+          windowId: window.id 
+        });
+      });
     }
   });
 });

@@ -283,5 +283,11 @@ function setupClickOutsideHandler() {
 
 function closeSidePanel() {
   // Close the side panel by sending a message to the background script
-  chrome.runtime.sendMessage({ type: "CLOSE_SIDE_PANEL" });
+  // We need to get the current window ID first
+  chrome.windows.getCurrent((window) => {
+    chrome.runtime.sendMessage({ 
+      type: "CLOSE_SIDE_PANEL", 
+      windowId: window.id 
+    });
+  });
 }
