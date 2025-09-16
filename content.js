@@ -248,13 +248,14 @@ function requestDefinition(query) {
   console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
   
   // Use fetch with no-cors mode to avoid CORS issues and prevent page navigation
+  // Send as JSON to preserve original strings without any URL encoding or conversion
   fetch(CONFIG.WEBHOOK_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
     },
-    body: new URLSearchParams(requestData)
+    body: JSON.stringify(requestData)
   })
   .then(() => {
     // Since we're using no-cors mode, we can't read the response
