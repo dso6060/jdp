@@ -1,29 +1,45 @@
 body {
   min-width: 300px;
   text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  margin: 0;
+  padding: 12px;
 }
 
 h2 {
-  color: #ff2626;
+  color: #0066cc;
+  font-size: 1.4rem;
+  margin: 8px 0;
+  font-weight: 600;
 }
 
 h1 {
   font-size: 2rem;
+  color: #0066cc;
 }
 
 div {
   font-size: 1.1rem;
-  background-color: #fff47d;
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  border: 1px solid #e1e5e9;
 }
 
 #phonetic {
-  color: brown;
+  color: #666;
   font-size: 1rem;
+  font-style: italic;
 }
 
 #example {
   font-size: 1rem;
-  background-color: #9ddac6;
+  background-color: #e8f4fd;
+  border-left: 3px solid #0066cc;
+  padding-left: 12px;
 }
 
 .navigate-container {
@@ -31,12 +47,17 @@ div {
   justify-content: space-between;
   text-align: center;
   background-color: #ffffff;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  margin: 8px 0;
 }
 
 .navigator {
   text-decoration: none;
   display: inline-block;
-  padding: 6px 14px;
+  padding: 8px 16px;
+  color: #0066cc;
+  font-weight: 500;
 }
 
 .hidenavigator {
@@ -45,14 +66,16 @@ div {
 
 .navigator:hover {
   cursor: pointer;
-  background-color: #ddd;
-  color: black;
+  background-color: #e8f4fd;
+  color: #004499;
 }
 
 .previous,
 .next {
-  background-color: #f1f1f1;
-  color: black;
+  background-color: #f8f9fa;
+  color: #0066cc;
+  border-radius: 4px;
+  margin: 4px;
 }
 
 .searchsvg {
@@ -63,6 +86,7 @@ div {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
+  filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(1456%) hue-rotate(201deg) brightness(95%) contrast(101%);
 }
 
 .searchanchor {
@@ -78,13 +102,33 @@ div {
 
 #requestBtn {
   margin-top: 8px;
-  padding: 6px 12px;
-  background-color: #f1f1f1;
-  border: 1px solid #ddd;
+  padding: 8px 16px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 #requestBtn:hover {
-  background-color: #e6e6e6;
+  background-color: #004499;
+}
+
+#error {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+#word {
+  color: #0066cc;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+#definition {
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
 }
