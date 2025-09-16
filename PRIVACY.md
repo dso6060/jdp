@@ -12,6 +12,15 @@ The Extension does not collect, store, or transmit any personal information abou
 
 The Extension is designed to work on every webpage you visit, allowing it to read and manipulate the content on those webpages for specific functionalities as described in the Extension's features.
 
+### Data Collection for Missing Definitions:
+
+When you request a definition for a term that is not found in our database, the Extension may collect and transmit the following information to our webhook service:
+- The term you searched for
+- The URL of the webpage where you made the request
+- A timestamp of when the request was made
+
+This data is used solely for the purpose of improving our definition database and is stored in a Google Sheet for expert review. No personal information is collected or transmitted.
+
 ### Offline Pages or Files:
 
 The Extension operates exclusively within the context of webpages while you are browsing online. It does not interact with or function on offline pages or files stored on your device.

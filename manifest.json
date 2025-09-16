@@ -10,9 +10,6 @@
         },
         "default_title": "Justice Definitions Project"
     },
-    "side_panel": {
-        "default_path": "sidepanel/sidepanel.html"
-    },
     "web_accessible_resources": [
         {
             "resources": ["config.js"],
@@ -41,7 +38,6 @@
       "permissions": [
         "activeTab",
         "storage",
-        "sidePanel",
         "windows"
       ],
       "host_permissions": [
