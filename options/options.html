@@ -12,11 +12,15 @@
     </style>
   </head>
   <body>
-    <h2>Configure Request Endpoint</h2>
-    <label for="webhook">Apps Script Webhook URL</label>
+    <h2>Optional: Configure Request Endpoint</h2>
+    <p style="color: #666; font-size: 0.9rem; margin-bottom: 16px;">
+      This is optional. Only configure if you want to submit requests for missing definitions to a Google Sheet.
+    </p>
+    <label for="webhook">Apps Script Webhook URL (Optional)</label>
     <input id="webhook" type="url" placeholder="https://script.google.com/macros/s/....../exec" />
 
     <button id="save">Save</button>
+    <button id="clear" style="margin-left: 8px; background-color: #dc3545;">Clear</button>
     <div class="status" id="status"></div>
 
     <script src="options.js"></script>

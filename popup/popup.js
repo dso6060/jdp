@@ -122,16 +122,12 @@ function showNoResultUI(query) {
   document.getElementById("error").innerHTML = "No result found";
   document.getElementById("definition").innerHTML = "";
   const btn = document.getElementById("requestBtn");
-  if (btn) {
+  if (btn && APPS_SCRIPT_WEBHOOK) {
     btn.classList.remove("hidenavigator");
     btn.onclick = async function () {
       const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const pageUrl = activeTabs && activeTabs[0] ? activeTabs[0].url : "";
       const nowIso = new Date().toISOString();
-      if (!APPS_SCRIPT_WEBHOOK) {
-        document.getElementById("phonetic").innerHTML = "Configure request endpoint first.";
-        return;
-      }
       try {
         const resp = await fetch(APPS_SCRIPT_WEBHOOK, {
           method: "POST",
