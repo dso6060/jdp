@@ -13,7 +13,7 @@ if (typeof window.EXTENSION_CONFIG !== 'undefined') {
 } else {
   // Fallback configuration
   CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbxE84LZB0y7sqKW9K_y1NGxKRTnNTL_gyxfUl2jWExwVCuQ89UKV8SWcKTYnjMM5J6N/exec",
+    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbzSv0cq8N4dQv0RJJr0Uuo6ZUfyDzOirkeG2fxHu9FrcSehGcLdnrS3Ajyd13e0p5aR/exec",
     WEBHOOK: {
       ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
     }
