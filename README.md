@@ -34,28 +34,16 @@ A Chrome extension that provides instant access to legal definitions from the [J
 
 ## Usage
 
-*Watch the demos above to see both interaction methods in action!*
+### Right-Click Lookup
+1. **Select text** on any webpage
+2. **Right-click** to get definition
+3. **Request missing definitions** or close popup
 
-### Right-Click Lookup (Quick Access)
-1. **Select any text** on any webpage
-2. **Right-click** to trigger instant definition lookup
-3. **Floating popup** appears with definition preview
-4. **Request missing definitions** or close popup
-5. **Seamless integration** with webpage content
-
-### Sliding Overlay Panel (Extended Interface)
-1. **Click extension icon** to open the sliding overlay panel (400px width)
-2. **Panel slides in smoothly** from the right side without affecting webpage layout
-3. **Search for legal terms** using the built-in search functionality
-4. **View definition results** directly within the overlay
-5. **Request missing definitions** using the "Request Definition" button
-6. **Click outside or close button** to slide panel out (0.3s animation)
-
-### Smart Features
-- **Context-aware**: Automatically switches between popup and overlay modes
-- **Non-disruptive**: Overlay appears on top without affecting webpage layout
-- **Smooth animations**: 0.3s slide transitions for professional feel
-- **Click-outside closure**: Intuitive closing by clicking outside the overlay
+### Sliding Overlay Panel
+1. **Click extension icon** to open panel
+2. **Search for terms** using the search bar
+3. **Request missing definitions** using the button
+4. **Click outside** to close panel
 
 ## Features
 
