@@ -5,7 +5,7 @@ var selectedText;
 var floatingPopup = null;
 
 // Webhook URL for requesting definitions
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
 
 function handleRightClick(event) {
   const selection = window.getSelection();
@@ -205,46 +205,46 @@ function requestDefinition(query) {
   console.log("Sending webhook request:", requestData);
   console.log("Webhook URL:", WEBHOOK_URL);
   
-  // Try multiple approaches to avoid CORS issues
+  // Use a simple form submission approach that works with Google Apps Script
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = WEBHOOK_URL;
+  form.style.display = 'none';
   
-  // Approach 1: Form data POST (most compatible with Google Apps Script)
-  const formData = new FormData();
-  formData.append('term', query);
-  formData.append('page_url', pageUrl);
-  formData.append('timestamp', nowIso);
+  // Add form fields
+  const termField = document.createElement('input');
+  termField.type = 'hidden';
+  termField.name = 'term';
+  termField.value = query;
+  form.appendChild(termField);
   
-  fetch(WEBHOOK_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  })
-  .then(() => {
-    // With no-cors mode, we can't read the response status
-    // So we assume success if no error is thrown
+  const urlField = document.createElement('input');
+  urlField.type = 'hidden';
+  urlField.name = 'page_url';
+  urlField.value = pageUrl;
+  form.appendChild(urlField);
+  
+  const timeField = document.createElement('input');
+  timeField.type = 'hidden';
+  timeField.name = 'timestamp';
+  timeField.value = nowIso;
+  form.appendChild(timeField);
+  
+  // Submit the form
+  document.body.appendChild(form);
+  form.submit();
+  
+  // Clean up
+  setTimeout(() => {
+    if (document.body.contains(form)) {
+      document.body.removeChild(form);
+    }
+  }, 1000);
+  
+  // Show success message after a short delay
+  setTimeout(() => {
     showRequestSuccess(query);
-  })
-  .catch(error => {
-    console.error("Form data POST failed:", error);
-    
-    // Approach 2: Fallback to GET request with URL parameters
-    const params = new URLSearchParams({
-      term: query,
-      page_url: pageUrl,
-      timestamp: nowIso
-    });
-    
-    fetch(`${WEBHOOK_URL}?${params}`, {
-      method: "GET",
-      mode: "no-cors"
-    })
-    .then(() => {
-      showRequestSuccess(query);
-    })
-    .catch(getError => {
-      console.error("GET fallback also failed:", getError);
-      showRequestError("Failed to submit request. Please try again.");
-    });
-  });
+  }, 800);
 }
 
 function showRequestSuccess(query) {

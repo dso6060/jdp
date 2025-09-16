@@ -3,7 +3,7 @@
 
 const CONFIG = {
   // External Resource URLs (ALL-CAPS for easy identification by developers)
-  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
+  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytl_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec",
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
   
   // Webhook Configuration
