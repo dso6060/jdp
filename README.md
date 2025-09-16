@@ -12,8 +12,8 @@ A Chrome extension that provides instant access to legal definitions from the [J
 
 **Justice Definitions Project Extension** is a Chrome extension that makes legal language accessible through two interaction methods:
 
-1. **Sliding Overlay Panel**: Click the extension icon to open a 400px wide overlay that slides in from the right side, featuring built-in search and request functionality
-2. **Right-Click Lookup**: Select any text on a webpage and right-click to get instant definition previews in a floating popup
+1. **Right-Click Lookup**: Select any text on a webpage and right-click to get instant definition previews in a floating popup
+2. **Sliding Overlay Panel**: Click the extension icon to open a 400px wide overlay that slides in from the right side, featuring built-in search and request functionality
 
 **Key Benefits:**
 - **Non-disruptive**: Overlay appears on top without affecting webpage layout
@@ -24,18 +24,18 @@ A Chrome extension that provides instant access to legal definitions from the [J
 
 ## Demo
 
-### Side Panel Functionality
-<p align="center">
-  <img src="assets/jdp_demo3.gif" alt="Justice Definitions Project Side Panel Demo" width="800" height="450">
-  <br>
-  <em>Watch the sliding overlay panel in action: Click the extension icon to open the 400px wide panel that slides in from the right, featuring built-in search and request functionality.</em>
-</p>
-
 ### Right-Click Lookup
 <p align="center">
   <img src="assets/jdp_demo.gif" alt="Justice Definitions Project Extension Demo" width="800" height="450">
   <br>
   <em>See the right-click lookup in action: Select any legal term and right-click for instant definition previews in a floating popup.</em>
+</p>
+
+### Side Panel Functionality
+<p align="center">
+  <img src="assets/jdp_demo3.gif" alt="Justice Definitions Project Side Panel Demo" width="800" height="450">
+  <br>
+  <em>Watch the sliding overlay panel in action: Click the extension icon to open the 400px wide panel that slides in from the right, featuring built-in search and request functionality.</em>
 </p>
 
 ## Installation
@@ -50,20 +50,20 @@ A Chrome extension that provides instant access to legal definitions from the [J
 
 *Watch the demos above to see both interaction methods in action!*
 
-### Sliding Overlay Panel (Primary Interface)
-1. **Click extension icon** to open the sliding overlay panel (400px width)
-2. **Panel slides in smoothly** from the right side without affecting webpage layout
-3. **Search for legal terms** using the built-in search functionality
-4. **View definition results** directly within the overlay
-5. **Request missing definitions** using the "Request Definition" button
-6. **Click outside or close button** to slide panel out (0.3s animation)
-
 ### Right-Click Lookup (Quick Access)
 1. **Select any text** on any webpage
 2. **Right-click** to trigger instant definition lookup
 3. **Floating popup** appears with definition preview
 4. **Request missing definitions** or close popup
 5. **Seamless integration** with webpage content
+
+### Sliding Overlay Panel (Extended Interface)
+1. **Click extension icon** to open the sliding overlay panel (400px width)
+2. **Panel slides in smoothly** from the right side without affecting webpage layout
+3. **Search for legal terms** using the built-in search functionality
+4. **View definition results** directly within the overlay
+5. **Request missing definitions** using the "Request Definition" button
+6. **Click outside or close button** to slide panel out (0.3s animation)
 
 ### Smart Features
 - **Context-aware**: Automatically switches between popup and overlay modes
