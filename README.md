@@ -6,160 +6,76 @@
 
 ---
 
-<p>
-This project aims to make legal language accessible by connecting any webpage selection to a reliable community‑maintained <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>. Built for researchers, students, and practitioners, the extension provides instant access to legal definitions through multiple interaction methods, sourced from the Justice Definitions Project (MediaWiki), curated and reviewed by experts. The goal is to provide credible, up‑to‑date explanations grounded in Indian legal context while remaining easy to consult during everyday reading.
-</p>
-  
-<br>
+A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology. Built for researchers, students, and practitioners.
 
+## Installation
 
-### Installation 🧩
+1. Clone this repository
+2. Open Chrome → `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked" → select project folder
+5. Extension appears in toolbar
 
-**Chrome Extension (Development Version):**
-1. Download or clone this repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode" (toggle in top right)
-4. Click "Load unpacked" and select this project folder
-5. The extension will appear in your Chrome toolbar
+## Usage
 
-### How It Works
+### Right-Click Lookup (Primary Method)
+1. **Select text** on any webpage
+2. **Right-click** to trigger instant definition lookup
+3. **Floating popup** appears with definition preview
+4. **Request missing definitions** or close popup
 
-The extension provides multiple ways to access legal definitions:
+### Side Panel (Extended Browsing)
+1. **Click extension icon** to open side panel (25% width)
+2. **Browse Justice Definitions Project** main page by default
+3. **Search for terms** using the search bar
+4. **Click results** to view full definitions in the panel
+5. **Click outside** to close the panel
 
-#### **Right-Click Lookup (Primary Method)**
-- **Right-click** on any selected text to trigger instant definition lookup
-- **Floating Popup**: A clean, expandable popup appears with definition preview
-- **Smart Positioning**: Popup automatically positions itself near your selection
-- **Quick Actions**: Request missing definitions or close popup with one click
+### Smart Features
+- **Context-aware**: Automatically switches between popup and panel modes
+- **Works on any webpage** without interference
+- **Responsive design** adapts to different screen sizes
 
-#### **Side Panel (Extended Browsing)**
-- **Click Extension Icon**: Opens a dedicated side panel (25% of window width)
-- **Default MediaWiki Content**: Shows Justice Definitions Project main page by default
-- **Embedded Browsing**: Full wiki pages displayed directly in the side panel
-- **Search Integration**: Search results appear above the embedded content
-- **Click-Outside Closure**: Click anywhere outside the panel to close it
-- **Seamless Navigation**: Click search results to view full definitions in the panel
+## Features
 
-#### **Smart Features**
-- **Context-Aware**: Automatically detects if side panel is open vs. closed
-- **Seamless Integration**: Works on any webpage without interference
-- **Responsive Design**: Adapts to different screen sizes and content lengths
+### Core Features
+- ✅ **Right-click definition lookup** - Instant floating popups
+- ✅ **Side panel interface** - 25% width panel with embedded MediaWiki
+- ✅ **Default MediaWiki content** - Justice Definitions Project main page
+- ✅ **Click-outside closure** - Intuitive panel closing
+- ✅ **Embedded definition viewing** - Full wiki pages in side panel
+- ✅ **Smart context detection** - Auto-switches between popup and panel
+- ✅ **Two-way communication** - Pull definitions and submit requests
+- ✅ **Responsive design** - Adapts to content and screen size
 
-### Side Panel Features
+### Request System
+- **📥 Pull Data**: Queries Justice Definitions Project MediaWiki API for definitions
+- **📤 Send Requests**: Submit missing term requests via webhook integration
+- **📊 Tracking**: Requests logged to [Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing) for prototype iteration
+- **🔬 Prototype**: Google Sheet serves as data collection system for future backend development
 
-The side panel provides a comprehensive browsing experience with the Justice Definitions Project:
+## About
 
-**🏠 Default Content:**
-- **MediaWiki Integration**: Justice Definitions Project main page loads by default
-- **Embedded Browsing**: Full wiki pages displayed directly within the panel
-- **Persistent Interface**: Keep the panel open while browsing multiple web pages
-
-**🔍 Search & Navigation:**
-- **Search Bar**: Manual search for legal terms and definitions
-- **Result Display**: Search results appear above the embedded content
-- **Direct Navigation**: Click any search result to view the full definition in the panel
-- **Seamless Switching**: Easy transition between search results and full wiki pages
-
-**🎯 User Experience:**
-- **Click-Outside Closure**: Click anywhere outside the panel to close it
-- **No Popup Conflicts**: When panel is open, right-click selections go directly to the panel
-- **Responsive Layout**: Adapts to different screen sizes and content lengths
-- **Clean Interface**: Minimal, focused design for optimal reading experience
-
-### Two-Way Communication System
-
-This project implements a **two-way communication system** between the browser extension and the Justice Definitions Project:
-
-**📥 Pull Data:** Extension queries the Justice Definitions Project MediaWiki API to retrieve and display legal definitions from the curated knowledge base.
-
-**📤 Send Requests:** When definitions are not found, users can submit requests for missing terms via webhook integration. These requests are automatically logged to a [Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing) for prototype iteration and community-driven expansion of the database.
-
-**📊 Request Tracking:** All definition requests are captured with:
-- Timestamp of the request
-- Term requested
-- Source page URL where the request was made
-- User agent and IP information
-- Status tracking for request processing
-
-**🔬 Prototype Iteration:** The Google Sheet serves as a prototype data collection system to understand user needs, identify common missing terms, and iterate on the extension's functionality before implementing a more robust backend solution.
-
-### Configuration System
-
-**📁 Configuration:** The extension uses a centralized `config.js` file for easy customization:
-
-- **External Resources** (ALL-CAPS): `WEBHOOK_URL`, `API_URL` - easily modifiable by developers
-- **Internal Settings**: Display limits, timeouts, and extension metadata
-- **No Setup Required**: Works out of the box with default Justice Definitions Project webhook
-- **Google Sheet Integration**: Requests are automatically logged to the [Justice Definitions Project Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing) for prototype iteration and data collection
-- **Custom Options**: Users can override webhook URL via Options page
-
-### About Justice Definitions Project
-
-This extension is built on the **Justice Definitions Project** - an expert-curated, credible knowledge base for legal terminology featuring:
-
+Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology featuring:
 - Expert review workflows and transparent sourcing
 - Community contributions from students, researchers, and legal practitioners
-- Versioned changes and public discussion for key updates
+- Versioned changes and public discussion
 
-**Contributing:** If you're an expert or institution interested in curation, please open an issue or reach out to collaborate.
+**Contributing:** Open an issue if you're interested in curation or collaboration.
 
-### Features
+## Technical Details
 
-**🎯 Core Features:**
-- ✅ **Right-click Definition Lookup** - Instant floating popups on text selection
-- ✅ **Enhanced Side Panel Interface** - Dedicated 25% width panel with embedded MediaWiki
-- ✅ **Default MediaWiki Content** - Justice Definitions Project main page loads by default
-- ✅ **Click-Outside Closure** - Intuitive panel closing by clicking outside
-- ✅ **Embedded Definition Viewing** - Full wiki pages displayed directly in side panel
-- ✅ **Smart Context Detection** - Automatically switches between popup and panel modes
-- ✅ **Two-way Communication** - Pull definitions and submit requests for missing terms
-- ✅ **Centralized Configuration** - Easy customization via `config.js`
-- ✅ **Responsive Design** - Adapts to content length and screen size
-- ✅ **Google Sheets Integration** - Prototype webhook system for definition requests logged to [Justice Definitions Project Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing)
+- **Manifest V3** - Latest Chrome extension standard
+- **Service Worker** - Efficient background processing
+- **Content Scripts** - Seamless webpage integration
+- **Storage API** - Persistent user preferences
+- **Cross-origin Requests** - Secure API communication
 
-**🔧 Technical Features:**
-- ✅ **Manifest V3** - Latest Chrome extension standard
-- ✅ **Service Worker** - Efficient background processing
-- ✅ **Content Scripts** - Seamless webpage integration
-- ✅ **Storage API** - Persistent user preferences
-- ✅ **Cross-origin Requests** - Secure API communication
+## Status
 
-### Development Status
-
-**📋 Current Status:**
 - ✅ **Version 0.6.0** - Latest stable release
-- ✅ **Right-click functionality** - Primary interaction method
-- ✅ **Side panel implementation** - Extended browsing interface
-- ✅ **Webhook integration** - Google Apps Script deployment
-- ✅ **Code cleanup** - Removed redundant functions and files
 - ⚠️ **Development version** - Not published to Chrome Web Store
-
-**🔓 Open Source:** This repository is publicly available. Developers can use it as a reference to build their own extensions or contribute enhancements.
-
-### Recent Updates (v0.6.0)
-
-**🆕 New Features:**
-- **Right-click Integration** - Primary method for instant definition lookup
-- **Enhanced Side Panel Interface** - Dedicated browsing panel with embedded MediaWiki content
-- **Default MediaWiki Display** - Justice Definitions Project main page loads by default in side panel
-- **Click-Outside Panel Closure** - Intuitive closing by clicking anywhere outside the panel
-- **Embedded Definition Viewing** - Full wiki pages displayed directly within the side panel
-- **Smart Mode Detection** - Automatically switches between popup and panel based on context
-- **Enhanced Webhook System** - Updated Google Apps Script integration for definition requests
-
-**🔧 Improvements:**
-- **Code Cleanup** - Removed redundant functions and temporary files
-- **Performance Optimization** - Streamlined content scripts and background processing
-- **UI/UX Enhancements** - Better popup positioning, responsive design, and seamless navigation
-- **Configuration Management** - Centralized settings in `config.js`
-- **Enhanced User Experience** - Seamless transition between search results and full definitions
-
-**🐛 Bug Fixes:**
-- Fixed reference to non-existent SVG assets
-- Resolved popup positioning issues
-- Improved error handling for webhook requests
-- Enhanced cross-origin request compatibility
-- Fixed side panel content display and navigation issues
+- 🔓 **Open Source** - Available for reference and contributions
 
 ### License
 
