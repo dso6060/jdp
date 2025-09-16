@@ -72,7 +72,14 @@ This project implements a **two-way communication system** between the browser e
 
 **📥 Pull Data:** Extension queries the Justice Definitions Project MediaWiki API to retrieve and display legal definitions from the curated knowledge base.
 
-**📤 Send Requests:** When definitions are not found, users can submit requests for missing terms via webhook integration, enabling community-driven expansion of the database.
+**📤 Send Requests:** When definitions are not found, users can submit requests for missing terms via webhook integration. These requests are automatically logged to a [Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing) for tracking and community-driven expansion of the database.
+
+**📊 Request Tracking:** All definition requests are captured with:
+- Timestamp of the request
+- Term requested
+- Source page URL where the request was made
+- User agent and IP information
+- Status tracking for request processing
 
 ### Configuration System
 
@@ -81,6 +88,7 @@ This project implements a **two-way communication system** between the browser e
 - **External Resources** (ALL-CAPS): `WEBHOOK_URL`, `API_URL` - easily modifiable by developers
 - **Internal Settings**: Display limits, timeouts, and extension metadata
 - **No Setup Required**: Works out of the box with default Justice Definitions Project webhook
+- **Google Sheet Integration**: Requests are automatically logged to the [Justice Definitions Project Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing)
 - **Custom Options**: Users can override webhook URL via Options page
 
 ### About Justice Definitions Project
@@ -105,7 +113,7 @@ This extension is built on the **Justice Definitions Project** - an expert-curat
 - ✅ **Two-way Communication** - Pull definitions and submit requests for missing terms
 - ✅ **Centralized Configuration** - Easy customization via `config.js`
 - ✅ **Responsive Design** - Adapts to content length and screen size
-- ✅ **Google Sheets Integration** - Webhook system for definition requests
+- ✅ **Google Sheets Integration** - Webhook system for definition requests logged to [Justice Definitions Project Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing)
 
 **🔧 Technical Features:**
 - ✅ **Manifest V3** - Latest Chrome extension standard
