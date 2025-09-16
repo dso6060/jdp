@@ -316,6 +316,17 @@ function performSidePanelSearch(query) {
 
 // Request definition from side panel
 function requestDefinitionFromSidePanel(query) {
+  // Check if extension context is still valid
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated - cannot proceed with webhook request");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed:", error.message);
+    return;
+  }
+  
   console.log("requestDefinitionFromSidePanel called with query:", query);
   console.log("CONFIG object:", CONFIG);
   console.log("WEBHOOK_URL:", CONFIG.WEBHOOK_URL);
@@ -362,42 +373,71 @@ function requestDefinitionFromSidePanel(query) {
   formData.append('timestamp', nowIso);
   formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
   
-  // Log FormData contents for debugging
-  console.log("FormData contents:");
-  for (let [key, value] of formData.entries()) {
-    console.log(`${key}: ${value}`);
+  // Log FormData contents for debugging (with error handling)
+  try {
+    console.log("FormData contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+  } catch (error) {
+    console.log("Could not log FormData contents (extension context may be invalidated):", error.message);
   }
   
-  fetch(CONFIG.WEBHOOK_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: formData
-  })
-  .then(() => {
-    // Success - show message in side panel
-    console.log("Request submitted successfully from side panel");
-    if (results) {
-      results.innerHTML = `
-        <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-          <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
-          <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
-          <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
-        </div>
-      `;
+  // Execute fetch with proper error handling
+  try {
+    fetch(CONFIG.WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    })
+    .then(() => {
+      // Success - show message in side panel
+      console.log("Request submitted successfully from side panel");
+      try {
+        if (results && document.body.contains(results)) {
+          results.innerHTML = `
+            <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+              <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
+              <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
+              <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
+            </div>
+          `;
+        }
+      } catch (domError) {
+        console.error("Could not update DOM after success (extension context may be invalidated):", domError.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Request failed from side panel:", error);
+      try {
+        if (results && document.body.contains(results)) {
+          results.innerHTML = `
+            <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+              <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
+              <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to submit request for "${query}". Please try again.</div>
+              <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
+            </div>
+          `;
+        }
+      } catch (domError) {
+        console.error("Could not update DOM after error (extension context may be invalidated):", domError.message);
+      }
+    });
+  } catch (fetchError) {
+    console.error("Failed to initiate fetch request (extension context may be invalidated):", fetchError.message);
+    try {
+      if (results && document.body.contains(results)) {
+        results.innerHTML = `
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Extension Context Error</div>
+            <div style="color: #856404; font-size: 14px; line-height: 1.5;">Please reload the extension and try again.</div>
+          </div>
+        `;
+      }
+    } catch (domError) {
+      console.error("Could not update DOM after fetch error:", domError.message);
     }
-  })
-  .catch((error) => {
-    console.error("Request failed from side panel:", error);
-    if (results) {
-      results.innerHTML = `
-        <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-          <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
-          <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to submit request for "${query}". Please try again.</div>
-          <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
-        </div>
-      `;
-    }
-  });
+  }
 }
 
 // Make requestDefinitionFromSidePanel globally accessible
