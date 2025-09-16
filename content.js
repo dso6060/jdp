@@ -383,16 +383,37 @@ function requestDefinitionFromSidePanel(query) {
     console.log("Could not log FormData contents (extension context may be invalidated):", error.message);
   }
   
-  // Execute fetch with proper error handling
+  // Execute fetch with proper error handling and detailed debugging
+  console.log("About to send fetch request to:", CONFIG.WEBHOOK_URL);
+  console.log("Request method: POST");
+  console.log("Request mode: no-cors");
+  console.log("FormData prepared with:", {
+    term: query,
+    page_url: pageUrl,
+    timestamp: nowIso,
+    access_key: CONFIG.WEBHOOK.ACCESS_KEY
+  });
+  
   try {
-    fetch(CONFIG.WEBHOOK_URL, {
+    const fetchPromise = fetch(CONFIG.WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors',
       body: formData
-    })
-    .then(() => {
-      // Success - show message in side panel
+    });
+    
+    console.log("Fetch promise created, waiting for response...");
+    
+    fetchPromise
+    .then((response) => {
+      console.log("Fetch response received:", response);
+      console.log("Response type:", response.type);
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
+      // Note: With no-cors mode, we can't read the response body
+      // but we can still check if the request was sent
       console.log("Request submitted successfully from side panel");
+      
       try {
         if (results && document.body.contains(results)) {
           results.innerHTML = `
@@ -400,6 +421,7 @@ function requestDefinitionFromSidePanel(query) {
               <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
               <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
               <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
+              <div style="color: #155724; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: Response type: ${response.type}, Status: ${response.status}</div>
             </div>
           `;
         }
@@ -409,6 +431,10 @@ function requestDefinitionFromSidePanel(query) {
     })
     .catch((error) => {
       console.error("Request failed from side panel:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      
       try {
         if (results && document.body.contains(results)) {
           results.innerHTML = `
@@ -416,6 +442,7 @@ function requestDefinitionFromSidePanel(query) {
               <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
               <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to submit request for "${query}". Please try again.</div>
               <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
+              <div style="color: #721c24; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: ${error.name} - ${error.message}</div>
             </div>
           `;
         }
@@ -425,12 +452,16 @@ function requestDefinitionFromSidePanel(query) {
     });
   } catch (fetchError) {
     console.error("Failed to initiate fetch request (extension context may be invalidated):", fetchError.message);
+    console.error("Fetch error name:", fetchError.name);
+    console.error("Fetch error stack:", fetchError.stack);
+    
     try {
       if (results && document.body.contains(results)) {
         results.innerHTML = `
           <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
             <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Extension Context Error</div>
             <div style="color: #856404; font-size: 14px; line-height: 1.5;">Please reload the extension and try again.</div>
+            <div style="color: #856404; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: ${fetchError.name} - ${fetchError.message}</div>
           </div>
         `;
       }
@@ -442,6 +473,50 @@ function requestDefinitionFromSidePanel(query) {
 
 // Make requestDefinitionFromSidePanel globally accessible
 window.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
+
+// Test function to verify webhook URL accessibility
+function testWebhookURL() {
+  console.log("Testing webhook URL accessibility...");
+  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
+  
+  // Test with a simple GET request first
+  fetch(CONFIG.WEBHOOK_URL, {
+    method: 'GET',
+    mode: 'no-cors'
+  })
+  .then((response) => {
+    console.log("GET test response:", response);
+    console.log("GET test - Response type:", response.type);
+    console.log("GET test - Response status:", response.status);
+  })
+  .catch((error) => {
+    console.error("GET test failed:", error);
+  });
+  
+  // Test with POST request
+  const testFormData = new FormData();
+  testFormData.append('term', 'test_term');
+  testFormData.append('page_url', 'https://test.com');
+  testFormData.append('timestamp', new Date().toISOString());
+  testFormData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
+  
+  fetch(CONFIG.WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: testFormData
+  })
+  .then((response) => {
+    console.log("POST test response:", response);
+    console.log("POST test - Response type:", response.type);
+    console.log("POST test - Response status:", response.status);
+  })
+  .catch((error) => {
+    console.error("POST test failed:", error);
+  });
+}
+
+// Make test function globally accessible
+window.testWebhookURL = testWebhookURL;
 
 function showFloatingPopup(selection) {
   // Create floating popup element
