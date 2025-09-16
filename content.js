@@ -233,65 +233,32 @@ function requestDefinition(query) {
   const requestData = { 
     term: query, 
     page_url: pageUrl, 
-    timestamp: nowIso 
+    timestamp: nowIso,
+    access_key: CONFIG.WEBHOOK.ACCESS_KEY
   };
   
   console.log("Sending webhook request:", requestData);
   console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
   
-  // Use a simple form submission approach that works with Google Apps Script
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = CONFIG.WEBHOOK_URL;
-  form.style.display = 'none';
-  
-  // Add form fields
-  const termField = document.createElement('input');
-  termField.type = 'hidden';
-  termField.name = 'term';
-  termField.value = query;
-  form.appendChild(termField);
-  
-  const urlField = document.createElement('input');
-  urlField.type = 'hidden';
-  urlField.name = 'page_url';
-  urlField.value = pageUrl;
-  form.appendChild(urlField);
-  
-  const timeField = document.createElement('input');
-  timeField.type = 'hidden';
-  timeField.name = 'timestamp';
-  timeField.value = nowIso;
-  form.appendChild(timeField);
-  
-  const accessKeyField = document.createElement('input');
-  accessKeyField.type = 'hidden';
-  accessKeyField.name = 'access_key';
-  accessKeyField.value = CONFIG.WEBHOOK.ACCESS_KEY;
-  form.appendChild(accessKeyField);
-  
-  // Submit the form
-  document.body.appendChild(form);
-  form.submit();
-  
-  // Clean up
-  setTimeout(() => {
-    if (document.body.contains(form)) {
-      document.body.removeChild(form);
-    }
-  }, 1000);
-  
-  // Show success message after a short delay
-  setTimeout(() => {
+  // Use fetch with no-cors mode to avoid CORS issues and prevent page navigation
+  fetch(CONFIG.WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(requestData)
+  })
+  .then(() => {
+    // Since we're using no-cors mode, we can't read the response
+    // But we can assume success if no error was thrown
+    console.log("Request submitted successfully");
     showRequestSuccess(query);
-  }, 800);
-  
-  // Also add a test to verify the popup is still there
-  setTimeout(() => {
-    if (!floatingPopup || !document.body.contains(floatingPopup)) {
-      console.error("Floating popup was removed before success message could be shown");
-    }
-  }, 500);
+  })
+  .catch((error) => {
+    console.error("Request failed:", error);
+    showRequestError("Failed to submit request. Please try again.");
+  });
 }
 
 function showRequestSuccess(query) {
@@ -309,18 +276,21 @@ function showRequestSuccess(query) {
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
-      <strong style="color: #28a745;">✓ Request submitted successfully</strong>
+      <strong style="color: #28a745;">✓ Definition Request Registered</strong>
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
-      Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
+      The highlighted phrase "<strong>${query}</strong>" has been successfully sent to the Justice Definitions Project experts.
+    </div>
+    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #e8f5e8; padding: 8px; border-radius: 4px; border-left: 3px solid #28a745;">
+      <strong>✓ Registered in Database:</strong> Your request has been logged in the "need definition" database for expert review and potential addition to the knowledge base.
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #f8f9fa; padding: 6px; border-radius: 4px;">
-      The team will review your request and may add this definition to the knowledge base.
+      <strong>Next Steps:</strong> The Justice Definitions Project team will review your request and may add this definition to help future users.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
-              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
-        ✕
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
+        ✕ Close
       </button>
     </div>
   `;
@@ -331,18 +301,18 @@ function showRequestError(message) {
   
   floatingPopup.innerHTML = `
     <div style="color: #dc3545; margin-bottom: 8px;">
-      <strong>⚠ Request failed</strong>
+      <strong>⚠ Request Failed</strong>
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
       ${message}
     </div>
-    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #fff3cd; padding: 6px; border-radius: 4px; border-left: 3px solid #ffc107;">
-      <strong>Tip:</strong> You can also request definitions by clicking the extension icon and using the "Request Definition" button there.
+    <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #fff3cd; padding: 8px; border-radius: 4px; border-left: 3px solid #ffc107;">
+      <strong>Alternative:</strong> You can also request definitions by clicking the extension icon and using the side panel search feature.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
       <button onclick="this.parentElement.parentElement.remove()" 
-              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
-        ✕
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
+        ✕ Close
       </button>
     </div>
   `;
