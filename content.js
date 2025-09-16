@@ -247,26 +247,52 @@ function requestDefinition(query) {
   console.log("Sending webhook request:", requestData);
   console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
   
-  // Use fetch with no-cors mode to avoid CORS issues and prevent page navigation
-  // Send as JSON to preserve original strings without any URL encoding or conversion
-  fetch(CONFIG.WEBHOOK_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestData)
-  })
-  .then(() => {
-    // Since we're using no-cors mode, we can't read the response
-    // But we can assume success if no error was thrown
-    console.log("Request submitted successfully");
+  // Use a simple form submission approach that works with Google Apps Script
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = CONFIG.WEBHOOK_URL;
+  form.style.display = 'none';
+  
+  // Add form fields
+  const termField = document.createElement('input');
+  termField.type = 'hidden';
+  termField.name = 'term';
+  termField.value = query;
+  form.appendChild(termField);
+  
+  const urlField = document.createElement('input');
+  urlField.type = 'hidden';
+  urlField.name = 'page_url';
+  urlField.value = pageUrl;
+  form.appendChild(urlField);
+  
+  const timeField = document.createElement('input');
+  timeField.type = 'hidden';
+  timeField.name = 'timestamp';
+  timeField.value = nowIso;
+  form.appendChild(timeField);
+  
+  const accessKeyField = document.createElement('input');
+  accessKeyField.type = 'hidden';
+  accessKeyField.name = 'access_key';
+  accessKeyField.value = CONFIG.WEBHOOK.ACCESS_KEY;
+  form.appendChild(accessKeyField);
+  
+  // Submit the form
+  document.body.appendChild(form);
+  form.submit();
+  
+  // Clean up
+  setTimeout(() => {
+    if (document.body.contains(form)) {
+      document.body.removeChild(form);
+    }
+  }, 1000);
+  
+  // Show success message after a short delay
+  setTimeout(() => {
     showRequestSuccess(query);
-  })
-  .catch((error) => {
-    console.error("Request failed:", error);
-    showRequestError("Failed to submit request. Please try again.");
-  });
+  }, 800);
 }
 
 function showRequestSuccess(query) {
