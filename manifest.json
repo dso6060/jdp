@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Dictionary",
+    "name": "Justice Definitions Project",
     "version": "1.2.1",
     "action": {
         "default_icon": {
@@ -8,11 +8,11 @@
             "24": "assets/icon24.png",
             "32": "assets/icon32.png"
         },
-        "default_title": "Dictionary",
+        "default_title": "Justice Definitions Project",
         "default_popup": "popup/popup.html"
     },
     "options_page": "options/options.html",
-    "description": "Select a word on the webpage and open popup to instantly look up in the dictionary",
+    "description": "Make legal language accessible by connecting webpage selections to the Justice Definitions Project. Built for researchers, students, and practitioners.",
     "icons": {
       "16": "assets/icon16.png",
       "48": "assets/icon48.png",
