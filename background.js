@@ -47,10 +47,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keep message channel open
 });
 
-// Handle side panel setup and pin extension
+// Handle side panel setup
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Justice Definitions Project extension installed");
   
-  // Pin the extension to the toolbar
-  chrome.action.setPinned({ pinned: true });
+  // Note: Extension pinning is handled by the user manually in Chrome
+  // chrome.action.setPinned is not available in Manifest V3
 });
