@@ -6,16 +6,16 @@ let sidePanelStatus = new Map(); // windowId -> isOpen
 
 // Listen for extension icon clicks
 chrome.action.onClicked.addListener((tab) => {
-  // Open the side panel
-  chrome.sidePanel.open({ windowId: tab.windowId });
+  // Send message to content script to create overlay side panel
+  chrome.tabs.sendMessage(tab.id, { type: "OPEN_SIDE_PANEL" });
   sidePanelStatus.set(tab.windowId, true);
 });
 
 // Listen for messages from content scripts and side panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_SIDE_PANEL") {
-    // Open side panel when requested from content script
-    chrome.sidePanel.open({ windowId: sender.tab.windowId });
+    // Send message to content script to create overlay side panel
+    chrome.tabs.sendMessage(sender.tab.id, { type: "OPEN_SIDE_PANEL" });
     sidePanelStatus.set(sender.tab.windowId, true);
     sendResponse({ success: true });
   } else if (message.type === "CLOSE_SIDE_PANEL") {

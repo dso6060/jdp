@@ -5,6 +5,7 @@ document.addEventListener("contextmenu", handleRightClick);
 
 var selectedText;
 var floatingPopup = null;
+var sidePanelOverlay = null;
 
 // Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
 let CONFIG = window.EXTENSION_CONFIG || {
@@ -23,26 +24,21 @@ function handleRightClick(event) {
     return;
   }
   
-  // Check if side panel is open by sending a message
-  chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
-    if (response && response.isOpen) {
-      // Side panel is open - send search query to side panel instead of showing popup
-      chrome.runtime.sendMessage({ 
-        type: "SEARCH_QUERY", 
-        query: selectedText 
-      });
-    } else {
-      // Side panel is closed - show floating popup as usual
-      // Remove any existing floating popup
-      if (floatingPopup) {
-        floatingPopup.remove();
-        floatingPopup = null;
-      }
-      
-      // Show the floating popup
-      showFloatingPopup(selection);
+  // Check if overlay side panel is open
+  if (sidePanelOverlay && document.body.contains(sidePanelOverlay)) {
+    // Overlay is open - perform search in overlay
+    performSidePanelSearch(selectedText);
+  } else {
+    // Overlay is closed - show floating popup as usual
+    // Remove any existing floating popup
+    if (floatingPopup) {
+      floatingPopup.remove();
+      floatingPopup = null;
     }
-  });
+    
+    // Show the floating popup
+    showFloatingPopup(selection);
+  }
   
   // Prevent the default context menu from appearing
   event.preventDefault();
@@ -53,6 +49,203 @@ function refreshSidePanelStatus() {
   chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
     console.log("Side panel status refreshed:", response);
   });
+}
+
+// Create sliding overlay side panel
+function createSidePanelOverlay() {
+  if (sidePanelOverlay) {
+    return; // Already exists
+  }
+  
+  // Create overlay container
+  sidePanelOverlay = document.createElement('div');
+  sidePanelOverlay.id = 'jdp-side-panel-overlay';
+  sidePanelOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: white;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+  `;
+  
+  // Create header
+  const header = document.createElement('div');
+  header.style.cssText = `
+    background: linear-gradient(135deg, #0066cc, #004499);
+    color: white;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  `;
+  
+  header.innerHTML = `
+    <div>
+      <h1 style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Justice Definitions Project</h1>
+      <p style="font-size: 12px; opacity: 0.9;">Legal definitions at your fingertips</p>
+    </div>
+    <button id="jdp-close-btn" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;">✕</button>
+  `;
+  
+  // Create content area
+  const content = document.createElement('div');
+  content.id = 'jdp-content';
+  content.style.cssText = `
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f8f9fa;
+  `;
+  
+  // Create search section
+  const searchSection = document.createElement('div');
+  searchSection.style.cssText = 'margin-bottom: 20px;';
+  searchSection.innerHTML = `
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+      <input type="text" id="jdp-search-input" placeholder="Search for legal terms..." style="flex: 1; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; transition: border-color 0.2s;">
+      <button id="jdp-search-btn" style="padding: 10px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">Search</button>
+    </div>
+  `;
+  
+  // Create results area
+  const results = document.createElement('div');
+  results.id = 'jdp-results';
+  results.style.cssText = 'margin-top: 16px;';
+  
+  // Create default content
+  const defaultContent = document.createElement('div');
+  defaultContent.id = 'jdp-default-content';
+  defaultContent.style.cssText = `
+    text-align: center;
+    padding: 32px 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  `;
+  defaultContent.innerHTML = `
+    <div style="font-size: 48px; margin-bottom: 16px;">⚖️</div>
+    <h2 style="color: #0066cc; margin-bottom: 12px; font-size: 20px;">Justice Definitions Project</h2>
+    <p style="color: #666; margin-bottom: 8px; font-size: 14px;">Search for legal terms and definitions</p>
+    <p style="color: #666; font-size: 12px;">Built on content from the Justice Definitions Project open-source team</p>
+  `;
+  
+  // Assemble the overlay
+  content.appendChild(searchSection);
+  content.appendChild(results);
+  content.appendChild(defaultContent);
+  
+  sidePanelOverlay.appendChild(header);
+  sidePanelOverlay.appendChild(content);
+  
+  // Add to page
+  document.body.appendChild(sidePanelOverlay);
+  
+  // Add event listeners
+  setupSidePanelEvents();
+  
+  // Slide in
+  setTimeout(() => {
+    sidePanelOverlay.style.right = '0px';
+  }, 10);
+}
+
+// Setup side panel event listeners
+function setupSidePanelEvents() {
+  // Close button
+  const closeBtn = document.getElementById('jdp-close-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeSidePanelOverlay);
+  }
+  
+  // Search functionality
+  const searchBtn = document.getElementById('jdp-search-btn');
+  const searchInput = document.getElementById('jdp-search-input');
+  
+  if (searchBtn && searchInput) {
+    searchBtn.addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (query) {
+        performSidePanelSearch(query);
+      }
+    });
+    
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        if (query) {
+          performSidePanelSearch(query);
+        }
+      }
+    });
+  }
+  
+  // Click outside to close
+  document.addEventListener('click', (e) => {
+    if (sidePanelOverlay && !sidePanelOverlay.contains(e.target)) {
+      closeSidePanelOverlay();
+    }
+  });
+}
+
+// Close side panel overlay
+function closeSidePanelOverlay() {
+  if (!sidePanelOverlay) return;
+  
+  // Slide out
+  sidePanelOverlay.style.right = '-400px';
+  
+  // Remove after animation
+  setTimeout(() => {
+    if (sidePanelOverlay && document.body.contains(sidePanelOverlay)) {
+      document.body.removeChild(sidePanelOverlay);
+      sidePanelOverlay = null;
+    }
+  }, 300);
+}
+
+// Perform search in side panel
+function performSidePanelSearch(query) {
+  const results = document.getElementById('jdp-results');
+  const defaultContent = document.getElementById('jdp-default-content');
+  
+  if (!results || !defaultContent) return;
+  
+  // Hide default content
+  defaultContent.style.display = 'none';
+  
+  // Show loading
+  results.innerHTML = `
+    <div style="text-align: center; padding: 32px; color: #666;">
+      <div style="width: 24px; height: 24px; border: 2px solid #e1e5e9; border-top: 2px solid #0066cc; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
+      Searching for "${query}"...
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  
+  // Perform search (simplified for now)
+  setTimeout(() => {
+    results.innerHTML = `
+      <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="font-size: 16px; font-weight: 600; color: #0066cc; margin-bottom: 8px;">Search Results for "${query}"</div>
+        <div style="color: #666; font-size: 14px; line-height: 1.5;">This is a placeholder for search results. In a full implementation, this would show actual definitions from the Justice Definitions Project API.</div>
+        <div style="margin-top: 8px; font-size: 12px; color: #999;">Source: Justice Definitions Project</div>
+      </div>
+    `;
+  }, 1000);
 }
 
 function showFloatingPopup(selection) {
@@ -467,9 +660,18 @@ function onMessageReceived(message, sender, sendResponse) {
     // Store the search query for the side panel
     chrome.storage.local.set({ lastSearchQuery: message.query });
     
-    // Request background script to open side panel
-    chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
+    // Create overlay side panel instead of Chrome side panel
+    createSidePanelOverlay();
     
+    // Perform search in the overlay
+    setTimeout(() => {
+      performSidePanelSearch(message.query);
+    }, 100);
+    
+    sendResponse({ success: true });
+  } else if (message.type === "OPEN_SIDE_PANEL") {
+    // Create overlay side panel
+    createSidePanelOverlay();
     sendResponse({ success: true });
   } else if (message.type === "SIDE_PANEL_CLOSED") {
     // Side panel was closed - refresh status
@@ -477,14 +679,19 @@ function onMessageReceived(message, sender, sendResponse) {
     refreshSidePanelStatus();
     sendResponse({ success: true });
   } else if (message.txt === "hello from popup") {
-    // Legacy popup support - redirect to side panel
+    // Legacy popup support - redirect to overlay side panel
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
     
     if (selectedText && selectedText !== "_TextNotSelected_") {
       const cleanWord = selectedText.replace(/[^a-zA-Z ]/g, "");
       chrome.storage.local.set({ lastSearchQuery: cleanWord });
-      chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL" });
+      createSidePanelOverlay();
+      
+      // Perform search in the overlay
+      setTimeout(() => {
+        performSidePanelSearch(cleanWord);
+      }, 100);
     }
     
     sendResponse({ selectedWord: selectedText || "_TextNotSelected_" });
