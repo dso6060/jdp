@@ -12,12 +12,13 @@
     </style>
   </head>
   <body>
-    <h2>Optional: Configure Request Endpoint</h2>
+    <h2>Configure Request Endpoint</h2>
     <p style="color: #666; font-size: 0.9rem; margin-bottom: 16px;">
-      This is optional. Only configure if you want to submit requests for missing definitions to a Google Sheet.
+      <strong>Default:</strong> Requests are sent to the Justice Definitions Project team.<br>
+      <strong>Custom:</strong> Enter your own webhook URL to collect requests in your own Google Sheet.
     </p>
-    <label for="webhook">Apps Script Webhook URL (Optional)</label>
-    <input id="webhook" type="url" placeholder="https://script.google.com/macros/s/....../exec" />
+    <label for="webhook">Custom Webhook URL (Optional)</label>
+    <input id="webhook" type="url" placeholder="Leave empty to use default Justice Definitions Project webhook" />
 
     <button id="save">Save</button>
     <button id="clear" style="margin-left: 8px; background-color: #dc3545;">Clear</button>

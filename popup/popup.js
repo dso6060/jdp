@@ -38,10 +38,16 @@ function gotTabs(tabs) {
   });
 }
 
-let APPS_SCRIPT_WEBHOOK = ""; // loaded from chrome.storage
+// Permanent webhook URL for Justice Definitions Project
+const PERMANENT_WEBHOOK = "https://script.google.com/macros/s/AKfycbyC9aQdgLCS3Kj2TBi5MO5ybMUA5I7ytI_8PqQcC10HVgWGIU62VH7YKm_IwNwttVZI/exec";
 
+let APPS_SCRIPT_WEBHOOK = PERMANENT_WEBHOOK; // Use permanent webhook by default
+
+// Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["APPS_SCRIPT_WEBHOOK"], (data) => {
-  APPS_SCRIPT_WEBHOOK = data.APPS_SCRIPT_WEBHOOK || "";
+  if (data.APPS_SCRIPT_WEBHOOK && data.APPS_SCRIPT_WEBHOOK.trim() !== "") {
+    APPS_SCRIPT_WEBHOOK = data.APPS_SCRIPT_WEBHOOK;
+  }
 });
 
 let pageExtract,
