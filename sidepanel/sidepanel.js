@@ -37,6 +37,7 @@ function checkForSearchQuery() {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'SEARCH_QUERY') {
       performSearch(message.query);
+      sendResponse({ success: true });
     }
   });
   

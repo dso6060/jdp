@@ -29,14 +29,26 @@ function handleRightClick(event) {
     return;
   }
   
-  // Remove any existing floating popup
-  if (floatingPopup) {
-    floatingPopup.remove();
-    floatingPopup = null;
-  }
-  
-  // Show the floating popup
-  showFloatingPopup(selection);
+  // Check if side panel is open by sending a message
+  chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
+    if (response && response.isOpen) {
+      // Side panel is open - send search query to side panel instead of showing popup
+      chrome.runtime.sendMessage({ 
+        type: "SEARCH_QUERY", 
+        query: selectedText 
+      });
+    } else {
+      // Side panel is closed - show floating popup as usual
+      // Remove any existing floating popup
+      if (floatingPopup) {
+        floatingPopup.remove();
+        floatingPopup = null;
+      }
+      
+      // Show the floating popup
+      showFloatingPopup(selection);
+    }
+  });
   
   // Prevent the default context menu from appearing
   event.preventDefault();
@@ -53,11 +65,16 @@ function showFloatingPopup(selection) {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     padding: 12px;
-    max-width: 300px;
+    min-width: 200px;
+    max-width: 400px;
+    width: auto;
     z-index: 10000;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
+    line-height: 1.4;
     color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     display: none;
   `;
   
@@ -131,18 +148,22 @@ function lookupDefinition(query) {
 function showDefinitionResult(title, definition, originalQuery) {
   if (!floatingPopup) return;
   
-  const maxChars = 140;
+  // Ensure popup width adjusts to content
+  floatingPopup.style.width = 'auto';
+  floatingPopup.style.maxWidth = '400px';
+  
+  const maxChars = 200; // Increased from 140 to show more content
   const displayText = definition.length > maxChars ? 
     definition.substring(0, maxChars) + "..." : definition;
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
-      <strong style="color: #0066cc;">${title}</strong>
+      <strong style="color: #0066cc; word-wrap: break-word;">${title}</strong>
     </div>
-    <div style="margin-bottom: 8px; line-height: 1.4;">
+    <div style="margin-bottom: 8px; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word;">
       ${displayText}
     </div>
-    <div style="display: flex; gap: 8px; align-items: center;">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
       <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
          target="_blank" 
          style="color: #0066cc; text-decoration: none; font-size: 12px;">
@@ -375,10 +396,10 @@ function onMessageReceived(message, sender, sendResponse) {
     sendResponse({ selectedWord: selectedText || "_TextNotSelected_" });
   } else {
     // Default response for backward compatibility
-    let msg =
-      selectedText && selectedText.length > 0
-        ? selectedText
-        : "_TextNotSelected_";
+  let msg =
+    selectedText && selectedText.length > 0
+      ? selectedText
+      : "_TextNotSelected_";
 
     sendResponse({ selectedWord: msg });
   }
