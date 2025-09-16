@@ -61,17 +61,9 @@ A Chrome extension that provides instant access to legal definitions from the [J
 
 ### Core Features
 - ✅ **Right-click definition lookup** - Instant floating popups with real API data
-- ✅ **Sliding overlay panel** - 400px width overlay that slides in from right
-- ✅ **Non-disruptive design** - Overlay appears on top without affecting webpage
-- ✅ **Smooth animations** - 0.3s slide transitions for professional UX
-- ✅ **Click-outside closure** - Intuitive closing by clicking outside overlay
-- ✅ **Built-in search** - Real-time search functionality within the overlay
-- ✅ **Smart context detection** - Auto-switches between popup and overlay modes
-- ✅ **Two-way communication** - Pull definitions and submit requests
+- ✅ **Sliding overlay panel** - 400px width overlay with built-in search functionality
 - ✅ **Request definition system** - Submit missing terms via webhook integration
 - ✅ **Google Sheet integration** - Automatic data collection for expert review
-- ✅ **Comprehensive error handling** - Robust error recovery and user feedback
-- ✅ **Extension context validation** - Prevents crashes during extension reloads
 
 ### Request System
 - **📥 Pull Data**: Queries Justice Definitions Project MediaWiki API for definitions
