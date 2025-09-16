@@ -5,10 +5,7 @@
 <br>
 
 <p>
-This project aims to make legal language accessible by connecting any webpage selection to a reliable community‑maintained <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>. Built for researchers, students, and practitioners, the extension lets you select a term on any page and instantly shows a concise
-definition preview sourced from the Justice Definitions Project (MediaWiki), curated and reviewed
-by experts. The goal is to provide credible, up‑to‑date explanations
-grounded in Indian legal context while remaining easy to consult during everyday reading.
+This project aims to make legal language accessible by connecting any webpage selection to a reliable community‑maintained <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>. Built for researchers, students, and practitioners, the extension automatically shows definition previews when you select text on any webpage, sourced from the Justice Definitions Project (MediaWiki), curated and reviewed by experts. The goal is to provide credible, up‑to‑date explanations grounded in Indian legal context while remaining easy to consult during everyday reading.
 </p>
   
 <br>
@@ -25,9 +22,10 @@ grounded in Indian legal context while remaining easy to consult during everyday
 
 ### How It Works
 
-- Select any word/term on a webpage and open the extension popup
-- The extension searches the Justice Definitions Project for the most relevant page
-- Displays a concise definition preview and links to the full wiki page
+- **Automatic Popup**: Select any word/term on a webpage and a floating popup appears instantly
+- **Smart Lookup**: The extension automatically searches the Justice Definitions Project for the most relevant page
+- **Quick Preview**: Displays a concise definition preview with a link to the full wiki page
+- **Seamless Experience**: No need to click the extension icon - definitions appear automatically on text selection
 
 ### Two-Way Communication System
 
@@ -60,9 +58,10 @@ This extension is built on the **Justice Definitions Project** - an expert-curat
 
 **📋 Current Status:**
 - ✅ Core functionality working (JDP lookups)
+- ✅ Automatic popup on text selection (NEW in v0.6.0)
 - ✅ Two-way communication system implemented
 - ✅ Centralized configuration system
-- 🔄 Version 0.5.2 (latest)
+- 🔄 Version 0.6.0 (latest)
 - ⚠️ Development version (not published to Chrome Web Store)
 
 **🔓 Open Source:** This repository is publicly available. Developers can use it as a reference to build their own extensions or contribute enhancements.
