@@ -1,11 +1,13 @@
-<p align="center">JUSTICE DEFINTIONS PROJECT</p>
+<p align="center">
+  <img src="assets/icon128.png" alt="Justice Definitions Project" width="64" height="64">
+  <br>
+  <strong>JUSTICE DEFINITIONS PROJECT</strong>
+</p>
 
 ---
 
-<br>
-
 <p>
-This project aims to make legal language accessible by connecting any webpage selection to a reliable community‑maintained <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>. Built for researchers, students, and practitioners, the extension automatically shows definition previews when you select text on any webpage, sourced from the Justice Definitions Project (MediaWiki), curated and reviewed by experts. The goal is to provide credible, up‑to‑date explanations grounded in Indian legal context while remaining easy to consult during everyday reading.
+This project aims to make legal language accessible by connecting any webpage selection to a reliable community‑maintained <a href="https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project">Justice Definitions Project</a>. Built for researchers, students, and practitioners, the extension provides instant access to legal definitions through multiple interaction methods, sourced from the Justice Definitions Project (MediaWiki), curated and reviewed by experts. The goal is to provide credible, up‑to‑date explanations grounded in Indian legal context while remaining easy to consult during everyday reading.
 </p>
   
 <br>
@@ -22,10 +24,25 @@ This project aims to make legal language accessible by connecting any webpage se
 
 ### How It Works
 
-- **Automatic Popup**: Select any word/term on a webpage and a floating popup appears instantly
-- **Smart Lookup**: The extension automatically searches the Justice Definitions Project for the most relevant page
-- **Quick Preview**: Displays a concise definition preview with a link to the full wiki page
-- **Seamless Experience**: No need to click the extension icon - definitions appear automatically on text selection
+The extension provides multiple ways to access legal definitions:
+
+#### **Right-Click Lookup (Primary Method)**
+- **Right-click** on any selected text to trigger instant definition lookup
+- **Floating Popup**: A clean, expandable popup appears with definition preview
+- **Smart Positioning**: Popup automatically positions itself near your selection
+- **Quick Actions**: Request missing definitions or close popup with one click
+
+#### **Side Panel (Extended Browsing)**
+- **Click Extension Icon**: Opens a dedicated side panel (25% of window width)
+- **Persistent Interface**: Keep the panel open while browsing multiple pages
+- **Search Bar**: Manual search for legal terms
+- **Wiki Integration**: Direct access to Justice Definitions Project pages
+- **Auto-Refresh**: Panel updates when new text is selected
+
+#### **Smart Features**
+- **Context-Aware**: Automatically detects if side panel is open vs. closed
+- **Seamless Integration**: Works on any webpage without interference
+- **Responsive Design**: Adapts to different screen sizes and content lengths
 
 ### Two-Way Communication System
 
@@ -54,17 +71,55 @@ This extension is built on the **Justice Definitions Project** - an expert-curat
 
 **Contributing:** If you're an expert or institution interested in curation, please open an issue or reach out to collaborate.
 
+### Features
+
+**🎯 Core Features:**
+- ✅ **Right-click Definition Lookup** - Instant floating popups on text selection
+- ✅ **Side Panel Interface** - Dedicated 25% width panel for extended browsing
+- ✅ **Smart Context Detection** - Automatically switches between popup and panel modes
+- ✅ **Two-way Communication** - Pull definitions and submit requests for missing terms
+- ✅ **Centralized Configuration** - Easy customization via `config.js`
+- ✅ **Responsive Design** - Adapts to content length and screen size
+- ✅ **Google Sheets Integration** - Webhook system for definition requests
+
+**🔧 Technical Features:**
+- ✅ **Manifest V3** - Latest Chrome extension standard
+- ✅ **Service Worker** - Efficient background processing
+- ✅ **Content Scripts** - Seamless webpage integration
+- ✅ **Storage API** - Persistent user preferences
+- ✅ **Cross-origin Requests** - Secure API communication
+
 ### Development Status
 
 **📋 Current Status:**
-- ✅ Core functionality working (JDP lookups)
-- ✅ Automatic popup on text selection (NEW in v0.6.0)
-- ✅ Two-way communication system implemented
-- ✅ Centralized configuration system
-- 🔄 Version 0.6.0 (latest)
-- ⚠️ Development version (not published to Chrome Web Store)
+- ✅ **Version 0.6.0** - Latest stable release
+- ✅ **Right-click functionality** - Primary interaction method
+- ✅ **Side panel implementation** - Extended browsing interface
+- ✅ **Webhook integration** - Google Apps Script deployment
+- ✅ **Code cleanup** - Removed redundant functions and files
+- ⚠️ **Development version** - Not published to Chrome Web Store
 
 **🔓 Open Source:** This repository is publicly available. Developers can use it as a reference to build their own extensions or contribute enhancements.
+
+### Recent Updates (v0.6.0)
+
+**🆕 New Features:**
+- **Right-click Integration** - Primary method for instant definition lookup
+- **Side Panel Interface** - Dedicated browsing panel with search functionality
+- **Smart Mode Detection** - Automatically switches between popup and panel based on context
+- **Enhanced Webhook System** - Updated Google Apps Script integration for definition requests
+
+**🔧 Improvements:**
+- **Code Cleanup** - Removed redundant functions and temporary files
+- **Performance Optimization** - Streamlined content scripts and background processing
+- **UI/UX Enhancements** - Better popup positioning and responsive design
+- **Configuration Management** - Centralized settings in `config.js`
+
+**🐛 Bug Fixes:**
+- Fixed reference to non-existent SVG assets
+- Resolved popup positioning issues
+- Improved error handling for webhook requests
+- Enhanced cross-origin request compatibility
 
 ### License
 
