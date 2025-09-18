@@ -91,12 +91,9 @@ Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki
 - ⚠️ **Development version** - Not published to Chrome Web Store
 - 🔓 **Open Source** - Available for reference and contributions
 
-## Summary
+## Credits
 
-**Justice Definitions Project Extension** is a Chrome extension that makes legal language accessible through two interaction methods:
-
-1. **Right-Click Lookup**: Select any text on a webpage and right-click to get instant definition previews in a floating popup
-2. **Sliding Overlay Panel**: Click the extension icon to open a 400px wide overlay that slides in from the right side, featuring built-in search and request functionality
+The lookup functionality in this extension was originally developed by **Sandeep Suman** ([@SandeepKrSuman](https://github.com/SandeepKrSuman)). This project builds upon their foundational work to provide enhanced legal definition lookup capabilities.
 
 ### License
 
