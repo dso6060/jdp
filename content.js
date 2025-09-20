@@ -694,39 +694,50 @@ function lookupDefinition(query) {
 }
 
 function findFirstMeaningfulContent(text) {
+  console.log("findFirstMeaningfulContent called with:", text.substring(0, 200) + "...");
+  
   // Split into paragraphs and find the first one that looks like actual content
   const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
+  console.log("Found paragraphs:", paragraphs.length);
   
-  for (const paragraph of paragraphs) {
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
     const cleanParagraph = paragraph.trim();
+    console.log(`Paragraph ${i}:`, cleanParagraph.substring(0, 100) + "...");
     
     // Skip metadata and navigation content
     if (cleanParagraph.match(/^(Content on this page|Reviewed by|Last updated|Table of contents|Contents|Navigation|References|See also|Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion)$/i)) {
+      console.log(`Skipping paragraph ${i} - metadata/navigation`);
       continue;
     }
     
     // Skip very short paragraphs (likely headers or metadata)
     if (cleanParagraph.length < 30) {
+      console.log(`Skipping paragraph ${i} - too short (${cleanParagraph.length} chars)`);
       continue;
     }
     
     // Skip paragraphs that are mostly numbers, dates, or special characters
     if (cleanParagraph.match(/^[\d\s\-_\.:]+$/)) {
+      console.log(`Skipping paragraph ${i} - mostly numbers/special chars`);
       continue;
     }
     
     // Skip paragraphs that start with section headers (single words or short phrases)
     if (cleanParagraph.match(/^[A-Z][a-z]+$/) || cleanParagraph.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+      console.log(`Skipping paragraph ${i} - section header`);
       continue;
     }
     
     // Found a meaningful paragraph - this should be the actual content
+    console.log(`Using paragraph ${i} as meaningful content`);
     const maxChars = 200;
     return cleanParagraph.length > maxChars ? 
       cleanParagraph.substring(0, maxChars) + "..." : cleanParagraph;
   }
   
   // Fallback: return first paragraph if no meaningful content found
+  console.log("No meaningful content found, using fallback");
   const firstParagraph = paragraphs[0] || text.split('\n')[0] || text;
   const maxChars = 200;
   return firstParagraph.length > maxChars ? 
@@ -735,6 +746,9 @@ function findFirstMeaningfulContent(text) {
 
 function showDefinitionResult(title, definition, originalQuery) {
   if (!floatingPopup) return;
+  
+  // Debug logging
+  console.log("showDefinitionResult called with:", { title, definition: definition?.substring(0, 200) + "...", originalQuery });
   
   // Ensure popup width adjusts to content
   floatingPopup.style.width = 'auto';
@@ -758,10 +772,13 @@ function showDefinitionResult(title, definition, originalQuery) {
       .replace(/Reviewed by: [^]*?\n/gi, '')
       .trim();
     
+    console.log("After metadata removal:", cleanDefinition.substring(0, 200) + "...");
+    
     // Try to find the "Official definition" section if it exists
     const officialDefMatch = cleanDefinition.match(/Official definition[^]*?\n([^]*?)(?=\n\n[A-Z]|\n\n\n|$)/i);
     if (officialDefMatch && officialDefMatch[1]) {
       let officialDefText = officialDefMatch[1].trim();
+      console.log("Found official definition:", officialDefText.substring(0, 100) + "...");
       if (officialDefText && !officialDefText.match(/^(Content on this page|Reviewed by|Last updated)/i)) {
         const maxChars = 200;
         displayText = officialDefText.length > maxChars ? 
@@ -774,6 +791,8 @@ function showDefinitionResult(title, definition, originalQuery) {
       // Use the first meaningful paragraph
       displayText = findFirstMeaningfulContent(cleanDefinition);
     }
+    
+    console.log("Final displayText:", displayText.substring(0, 100) + "...");
   }
   
   floatingPopup.innerHTML = `
