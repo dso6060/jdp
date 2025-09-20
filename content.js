@@ -704,9 +704,6 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
-    // Debug: Log the raw definition content
-    console.log("Raw definition content:", definition);
-    
     // More direct approach: split into lines and filter out metadata lines
     const lines = definition.split('\n');
     const filteredLines = [];
@@ -725,30 +722,24 @@ function showDefinitionResult(title, definition, originalQuery) {
       filteredLines.push(trimmedLine);
     }
     
-    console.log("Filtered lines:", filteredLines);
-    
     const cleanDefinition = filteredLines.join('\n').trim();
     
     // Now find the first substantial content line
     for (let i = 0; i < filteredLines.length; i++) {
       const line = filteredLines[i];
-      console.log(`Processing line ${i}: "${line}"`);
       
       // Skip only obvious headers and very short lines
       if (line.length < 10 || 
           line.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) ||
           (line.match(/^[A-Z][a-z]+$/) && line.length < 20)) {
-        console.log(`Skipping short/header line: "${line}"`);
         continue;
       }
       
       // Universal pattern: Skip any "What is..." question and look for the actual answer
       if (line.match(/^What is.*\?$/i)) {
-        console.log(`Found question line: "${line}", looking for answer...`);
         // Look for the next substantial line after the question
         for (let j = i + 1; j < filteredLines.length; j++) {
           const nextLine = filteredLines[j];
-          console.log(`Checking next line ${j}: "${nextLine}"`);
           if (nextLine.length >= 20 && 
               !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
               !nextLine.match(/^What is.*\?$/i)) {
@@ -756,7 +747,6 @@ function showDefinitionResult(title, definition, originalQuery) {
             const maxChars = 200;
             displayText = nextLine.length > maxChars ? 
               nextLine.substring(0, maxChars) + "..." : nextLine;
-            console.log(`Found definition after question: "${displayText}"`);
             break;
           }
         }
@@ -768,7 +758,6 @@ function showDefinitionResult(title, definition, originalQuery) {
       const maxChars = 200;
       displayText = line.length > maxChars ? 
         line.substring(0, maxChars) + "..." : line;
-      console.log(`Using substantial line: "${displayText}"`);
       break;
     }
     
@@ -1175,32 +1164,47 @@ function showError(message) {
 
 // Hide popup when clicking elsewhere and handle side panel clicks
 document.addEventListener("click", function(event) {
-  if (floatingPopup && !floatingPopup.contains(event.target)) {
-    floatingPopup.remove();
-    floatingPopup = null;
-  }
-  
-  // Check if click is outside side panel and send message to close it
-  chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
-    if (response && response.isOpen) {
-      // Side panel is open, send click outside message with window ID
-      chrome.windows.getCurrent((window) => {
-        chrome.runtime.sendMessage({ 
-          type: "CLICK_OUTSIDE_SIDE_PANEL", 
-          windowId: window.id 
-        });
-      });
+  try {
+    // Check if extension context is still valid
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      return; // Extension context invalidated, don't proceed
     }
-  });
+    
+    if (floatingPopup && !floatingPopup.contains(event.target)) {
+      floatingPopup.remove();
+      floatingPopup = null;
+    }
+    
+    // Check if click is outside side panel and send message to close it
+    chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
+      if (response && response.isOpen) {
+        // Side panel is open, send click outside message with window ID
+        chrome.windows.getCurrent((window) => {
+          chrome.runtime.sendMessage({ 
+            type: "CLICK_OUTSIDE_SIDE_PANEL", 
+            windowId: window.id 
+          });
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error in click event handler:", error.message);
+  }
 });
 
 // receive the message from popup (for backward compatibility with extension popup).
 chrome.runtime.onMessage.addListener(onMessageReceived);
 
 function onMessageReceived(message, sender, sendResponse) {
-  if (message.type === "SEARCH_QUERY") {
-    // Store the search query for the side panel
-    chrome.storage.local.set({ lastSearchQuery: message.query });
+  try {
+    // Check if extension context is still valid
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      return; // Extension context invalidated, don't proceed
+    }
+    
+    if (message.type === "SEARCH_QUERY") {
+      // Store the search query for the side panel
+      chrome.storage.local.set({ lastSearchQuery: message.query });
     
     // Create overlay side panel instead of Chrome side panel
     createSidePanelOverlay();
@@ -1248,4 +1252,8 @@ function onMessageReceived(message, sender, sendResponse) {
   }
   
   return true; // Keep message channel open for async response
+  } catch (error) {
+    console.error("Error in message handler:", error.message);
+    return false;
+  }
 }
