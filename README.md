@@ -1,6 +1,28 @@
-# Justice Definitions Project
+<p align="center">
+  <img src="assets/icon128.png" alt="Justice Definitions Project" width="64" height="64">
+  <br>
+  <strong>JUSTICE DEFINITIONS PROJECT</strong>
+</p>
 
-A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology.
+---
+
+A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology. Features a sliding overlay panel that appears on top of webpages without disrupting the user's browsing experience. Built for researchers, students, and practitioners.
+
+## Demo
+
+### Right-Click Lookup
+<p align="center">
+  <img src="assets/jdp_demo.gif" alt="Justice Definitions Project Extension Demo" width="800" height="450">
+  <br>
+  <em>See the right-click lookup in action: Select any legal term and right-click for instant definition previews in a floating popup.</em>
+</p>
+
+### Side Panel Functionality
+<p align="center">
+  <img src="assets/jdp_demo3.gif" alt="Justice Definitions Project Side Panel Demo" width="800" height="450">
+  <br>
+  <em>Watch the sliding overlay panel in action: Click the extension icon to open the 400px wide panel that slides in from the right, featuring built-in search and request functionality.</em>
+</p>
 
 ## Installation
 
