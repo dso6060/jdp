@@ -783,38 +783,63 @@ function showDefinitionResult(title, definition, originalQuery) {
     // Simplified approach: just get the first substantial paragraph after removing metadata
     let cleanDefinition = definition;
     
-    // Remove metadata lines
+    // Remove metadata lines more aggressively
     cleanDefinition = cleanDefinition
       .replace(/Content on this page has been reviewed and fact checked\.?\s*/gi, '')
       .replace(/Reviewed by: [^\n]*\s*/gi, '')
       .replace(/Last updated: \d+\s*/gi, '')
+      .replace(/Content on this page has been reviewed and fact checked[^]*?Last updated: \d+/gi, '')
+      .replace(/Reviewed by: [^]*?Last updated: \d+/gi, '')
+      .replace(/^Content on this page[^]*?Last updated: \d+\s*/gim, '')
+      .replace(/^Reviewed by: [^]*?\n/gim, '')
+      .replace(/^Last updated: \d+\s*/gim, '')
       .trim();
     
     console.log("After metadata removal:", cleanDefinition.substring(0, 200) + "...");
     
-    // Split into lines and find the first substantial line
-    const lines = cleanDefinition.split('\n').filter(line => line.trim().length > 0);
-    console.log("Found lines:", lines.length);
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      console.log(`Line ${i}:`, line.substring(0, 100) + "...");
-      
-      // Skip empty lines, headers, and metadata
-      if (line.length < 20 || 
-          line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
-          line.match(/^[A-Z][a-z]+$/) ||
-          line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
-        console.log(`Skipping line ${i} - header/metadata`);
-        continue;
+    // First, try to find content that starts with "The" (likely actual definition content)
+    const theContentMatch = cleanDefinition.match(/(The [^]*?)(?=\n\n|\n[A-Z]|$)/);
+    if (theContentMatch && theContentMatch[1]) {
+      let theContent = theContentMatch[1].trim();
+      if (theContent.length > 30) {
+        console.log("Found 'The' content:", theContent.substring(0, 100) + "...");
+        const maxChars = 200;
+        displayText = theContent.length > maxChars ? 
+          theContent.substring(0, maxChars) + "..." : theContent;
       }
+    }
+    
+    // If that didn't work, try line-by-line approach
+    if (!displayText || displayText.length < 30) {
+      const lines = cleanDefinition.split('\n').filter(line => line.trim().length > 0);
+      console.log("Found lines:", lines.length);
       
-      // Found a substantial line - use it
-      console.log(`Using line ${i} as content`);
-      const maxChars = 200;
-      displayText = line.length > maxChars ? 
-        line.substring(0, maxChars) + "..." : line;
-      break;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        console.log(`Line ${i}:`, line.substring(0, 100) + "...");
+        
+        // Skip empty lines, headers, and metadata
+        if (line.length < 20 || 
+            line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
+            line.match(/^[A-Z][a-z]+$/) ||
+            line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/) ||
+            line.match(/Content on this page has been reviewed/i) ||
+            line.match(/Reviewed by:/i) ||
+            line.match(/Last updated:/i) ||
+            line.match(/^Content on this page/i) ||
+            line.match(/^Reviewed by/i) ||
+            line.match(/^Last updated/i)) {
+          console.log(`Skipping line ${i} - header/metadata: ${line.substring(0, 50)}...`);
+          continue;
+        }
+        
+        // Found a substantial line - use it
+        console.log(`Using line ${i} as content`);
+        const maxChars = 200;
+        displayText = line.length > maxChars ? 
+          line.substring(0, maxChars) + "..." : line;
+        break;
+      }
     }
     
     // If no substantial line found, use the first non-empty line
