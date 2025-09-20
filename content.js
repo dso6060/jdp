@@ -693,6 +693,46 @@ function lookupDefinition(query) {
     });
 }
 
+function findFirstMeaningfulContent(text) {
+  // Split into paragraphs and find the first one that looks like actual content
+  const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
+  
+  for (const paragraph of paragraphs) {
+    const cleanParagraph = paragraph.trim();
+    
+    // Skip metadata and navigation content
+    if (cleanParagraph.match(/^(Content on this page|Reviewed by|Last updated|Table of contents|Contents|Navigation|References|See also|Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion)$/i)) {
+      continue;
+    }
+    
+    // Skip very short paragraphs (likely headers or metadata)
+    if (cleanParagraph.length < 30) {
+      continue;
+    }
+    
+    // Skip paragraphs that are mostly numbers, dates, or special characters
+    if (cleanParagraph.match(/^[\d\s\-_\.:]+$/)) {
+      continue;
+    }
+    
+    // Skip paragraphs that start with section headers (single words or short phrases)
+    if (cleanParagraph.match(/^[A-Z][a-z]+$/) || cleanParagraph.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+      continue;
+    }
+    
+    // Found a meaningful paragraph - this should be the actual content
+    const maxChars = 200;
+    return cleanParagraph.length > maxChars ? 
+      cleanParagraph.substring(0, maxChars) + "..." : cleanParagraph;
+  }
+  
+  // Fallback: return first paragraph if no meaningful content found
+  const firstParagraph = paragraphs[0] || text.split('\n')[0] || text;
+  const maxChars = 200;
+  return firstParagraph.length > maxChars ? 
+    firstParagraph.substring(0, maxChars) + "..." : firstParagraph;
+}
+
 function showDefinitionResult(title, definition, originalQuery) {
   if (!floatingPopup) return;
   
@@ -707,27 +747,32 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
+    // Clean up the definition text to remove metadata and find actual content
+    let cleanDefinition = definition;
+    
+    // Remove common metadata patterns
+    cleanDefinition = cleanDefinition
+      .replace(/Content on this page has been reviewed and fact checked[^]*?Last updated: \d+/gi, '')
+      .replace(/Reviewed by:[^]*?Last updated: \d+/gi, '')
+      .replace(/Last updated: \d+/gi, '')
+      .replace(/Reviewed by: [^]*?\n/gi, '')
+      .trim();
+    
     // Try to find the "Official definition" section if it exists
-    const officialDefMatch = definition.match(/Official definition[^]*?\n([^]*?)(?=\n\n[A-Z]|\n\n\n|$)/i);
+    const officialDefMatch = cleanDefinition.match(/Official definition[^]*?\n([^]*?)(?=\n\n[A-Z]|\n\n\n|$)/i);
     if (officialDefMatch && officialDefMatch[1]) {
       let officialDefText = officialDefMatch[1].trim();
-      if (officialDefText) {
+      if (officialDefText && !officialDefText.match(/^(Content on this page|Reviewed by|Last updated)/i)) {
         const maxChars = 200;
         displayText = officialDefText.length > maxChars ? 
           officialDefText.substring(0, maxChars) + "..." : officialDefText;
       } else {
-        // Fall back to first paragraph if official definition content is empty
-        const firstParagraph = definition.split('\n\n')[0];
-        const maxChars = 200;
-        displayText = firstParagraph.length > maxChars ? 
-          firstParagraph.substring(0, maxChars) + "..." : firstParagraph;
+        // Fall back to finding the first meaningful paragraph
+        displayText = findFirstMeaningfulContent(cleanDefinition);
       }
     } else {
-      // Use the first paragraph or first 200 characters
-      const firstParagraph = definition.split('\n\n')[0];
-      const maxChars = 200;
-      displayText = firstParagraph.length > maxChars ? 
-        firstParagraph.substring(0, maxChars) + "..." : firstParagraph;
+      // Use the first meaningful paragraph
+      displayText = findFirstMeaningfulContent(cleanDefinition);
     }
   }
   
