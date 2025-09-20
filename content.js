@@ -704,6 +704,9 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
+    // Debug: Log the raw definition content
+    console.log("Raw definition content:", definition);
+    
     // More direct approach: split into lines and filter out metadata lines
     const lines = definition.split('\n');
     const filteredLines = [];
@@ -722,24 +725,30 @@ function showDefinitionResult(title, definition, originalQuery) {
       filteredLines.push(trimmedLine);
     }
     
+    console.log("Filtered lines:", filteredLines);
+    
     const cleanDefinition = filteredLines.join('\n').trim();
     
     // Now find the first substantial content line
     for (let i = 0; i < filteredLines.length; i++) {
       const line = filteredLines[i];
+      console.log(`Processing line ${i}: "${line}"`);
       
       // Skip only obvious headers and very short lines
       if (line.length < 10 || 
           line.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) ||
           (line.match(/^[A-Z][a-z]+$/) && line.length < 20)) {
+        console.log(`Skipping short/header line: "${line}"`);
         continue;
       }
       
       // Skip questions that are just asking "What is..." - look for the actual answer
       if (line.match(/^What is.*\?$/i)) {
+        console.log(`Found question line: "${line}", looking for answer...`);
         // Look for the next substantial line after the question
         for (let j = i + 1; j < filteredLines.length; j++) {
           const nextLine = filteredLines[j];
+          console.log(`Checking next line ${j}: "${nextLine}"`);
           if (nextLine.length >= 20 && 
               !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
               !nextLine.match(/^What is.*\?$/i)) {
@@ -747,6 +756,7 @@ function showDefinitionResult(title, definition, originalQuery) {
             const maxChars = 200;
             displayText = nextLine.length > maxChars ? 
               nextLine.substring(0, maxChars) + "..." : nextLine;
+            console.log(`Found definition after question: "${displayText}"`);
             break;
           }
         }
@@ -759,6 +769,7 @@ function showDefinitionResult(title, definition, originalQuery) {
         const maxChars = 200;
         displayText = line.length > maxChars ? 
           line.substring(0, maxChars) + "..." : line;
+        console.log(`Found direct definition: "${displayText}"`);
         break;
       }
       
@@ -766,6 +777,7 @@ function showDefinitionResult(title, definition, originalQuery) {
       const maxChars = 200;
       displayText = line.length > maxChars ? 
         line.substring(0, maxChars) + "..." : line;
+      console.log(`Using substantial line: "${displayText}"`);
       break;
     }
     
