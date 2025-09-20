@@ -642,31 +642,48 @@ function lookupDefinition(query) {
           .replace(/\s+/g, " ")
           .trim();
         
-        // If snippet is too short or empty, try to get more content using extract
-        if (!cleanSnippet || cleanSnippet.length < 20) {
-          const extractParams = `action=query&prop=extracts&explaintext=1&exintro=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
-          
-          return fetch(`${api}?${extractParams}`)
-            .then(response => response.json())
-            .then(extractData => {
-              let extractText = "";
-              if (extractData && extractData.query && extractData.query.pages && extractData.query.pages[pageid]) {
-                extractText = (extractData.query.pages[pageid].extract || "").trim();
-              }
+        // Always try to get more content using extract, but fall back to snippet if needed
+        const extractParams = `action=query&prop=extracts&explaintext=1&exintro=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
+        
+        return fetch(`${api}?${extractParams}`)
+          .then(response => response.json())
+          .then(extractData => {
+            let extractText = "";
+            if (extractData && extractData.query && extractData.query.pages && extractData.query.pages[pageid]) {
+              extractText = (extractData.query.pages[pageid].extract || "").trim();
+            }
+            
+            // If extract is empty, try without exintro=1 to get more content
+            if (!extractText) {
+              const fullExtractParams = `action=query&prop=extracts&explaintext=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
               
-              // Use extract if available, otherwise fall back to snippet
-              const finalText = extractText || cleanSnippet;
-              showDefinitionResult(title, finalText, query);
-            })
-            .catch(error => {
-              console.error("Extract fetch failed:", error);
-              // Fall back to snippet even if it's short
-              showDefinitionResult(title, cleanSnippet, query);
-            });
-        } else {
-          // Snippet is good enough, show it
-          showDefinitionResult(title, cleanSnippet, query);
-        }
+              return fetch(`${api}?${fullExtractParams}`)
+                .then(response => response.json())
+                .then(fullExtractData => {
+                  let fullExtractText = "";
+                  if (fullExtractData && fullExtractData.query && fullExtractData.query.pages && fullExtractData.query.pages[pageid]) {
+                    fullExtractText = (fullExtractData.query.pages[pageid].extract || "").trim();
+                  }
+                  
+                  // Use full extract if available, otherwise fall back to snippet
+                  const finalText = fullExtractText || cleanSnippet;
+                  showDefinitionResult(title, finalText, query);
+                })
+                .catch(error => {
+                  console.error("Full extract fetch failed:", error);
+                  // Fall back to snippet even if it's short
+                  showDefinitionResult(title, cleanSnippet, query);
+                });
+            } else {
+              // Extract is good, use it
+              showDefinitionResult(title, extractText, query);
+            }
+          })
+          .catch(error => {
+            console.error("Extract fetch failed:", error);
+            // Fall back to snippet even if it's short
+            showDefinitionResult(title, cleanSnippet, query);
+          });
       } else {
         showNoResult(query);
       }
@@ -690,9 +707,17 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
-    const maxChars = 200; // Increased from 140 to show more content
-    displayText = definition.length > maxChars ? 
-      definition.substring(0, maxChars) + "..." : definition;
+    // Try to find the "Official definition" section if it exists
+    const officialDefMatch = definition.match(/Official definition[^]*?(?=\n\n|\n[A-Z]|$)/i);
+    if (officialDefMatch) {
+      displayText = officialDefMatch[0].trim();
+    } else {
+      // Use the first paragraph or first 200 characters
+      const firstParagraph = definition.split('\n\n')[0];
+      const maxChars = 200;
+      displayText = firstParagraph.length > maxChars ? 
+        firstParagraph.substring(0, maxChars) + "..." : firstParagraph;
+    }
   }
   
   floatingPopup.innerHTML = `
