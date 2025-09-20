@@ -629,20 +629,44 @@ function lookupDefinition(query) {
       if (data && data.query && data.query.search && data.query.search.length > 0) {
         const first = data.query.search[0];
         const title = first.title;
+        const pageid = first.pageid;
         const snippet = first.snippet || "";
         
-        // Clean up the snippet
+        // Clean up the snippet first
         const tmp = document.createElement("div");
         tmp.innerHTML = snippet;
-        const cleanSnippet = (tmp.textContent || tmp.innerText || "")
+        let cleanSnippet = (tmp.textContent || tmp.innerText || "")
           .replace(/\[\[[^\]]+\]\]/g, "")
           .replace(/\{\{[^}]+\}\}/g, "")
           .replace(/==+[^=]*==+/g, "")
           .replace(/\s+/g, " ")
           .trim();
         
-        // Show result
-        showDefinitionResult(title, cleanSnippet, query);
+        // If snippet is too short or empty, try to get more content using extract
+        if (!cleanSnippet || cleanSnippet.length < 20) {
+          const extractParams = `action=query&prop=extracts&explaintext=1&exintro=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
+          
+          return fetch(`${api}?${extractParams}`)
+            .then(response => response.json())
+            .then(extractData => {
+              let extractText = "";
+              if (extractData && extractData.query && extractData.query.pages && extractData.query.pages[pageid]) {
+                extractText = (extractData.query.pages[pageid].extract || "").trim();
+              }
+              
+              // Use extract if available, otherwise fall back to snippet
+              const finalText = extractText || cleanSnippet;
+              showDefinitionResult(title, finalText, query);
+            })
+            .catch(error => {
+              console.error("Extract fetch failed:", error);
+              // Fall back to snippet even if it's short
+              showDefinitionResult(title, cleanSnippet, query);
+            });
+        } else {
+          // Snippet is good enough, show it
+          showDefinitionResult(title, cleanSnippet, query);
+        }
       } else {
         showNoResult(query);
       }
@@ -659,9 +683,17 @@ function showDefinitionResult(title, definition, originalQuery) {
   floatingPopup.style.width = 'auto';
   floatingPopup.style.maxWidth = '400px';
   
-  const maxChars = 200; // Increased from 140 to show more content
-  const displayText = definition.length > maxChars ? 
-    definition.substring(0, maxChars) + "..." : definition;
+  // Handle empty or very short definitions
+  let displayText = definition;
+  if (!definition || definition.trim().length === 0) {
+    displayText = "Definition content not available. Click 'Read more' to view the full page.";
+  } else if (definition.trim().length < 10) {
+    displayText = definition.trim() + " (Click 'Read more' for full definition)";
+  } else {
+    const maxChars = 200; // Increased from 140 to show more content
+    displayText = definition.length > maxChars ? 
+      definition.substring(0, maxChars) + "..." : definition;
+  }
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
