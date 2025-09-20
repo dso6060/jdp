@@ -742,7 +742,7 @@ function showDefinitionResult(title, definition, originalQuery) {
         continue;
       }
       
-      // Skip questions that are just asking "What is..." - look for the actual answer
+      // Universal pattern: Skip any "What is..." question and look for the actual answer
       if (line.match(/^What is.*\?$/i)) {
         console.log(`Found question line: "${line}", looking for answer...`);
         // Look for the next substantial line after the question
@@ -764,25 +764,6 @@ function showDefinitionResult(title, definition, originalQuery) {
         continue; // Skip the question line itself
       }
       
-      // Special case: Look for definitions that start with the term (case-insensitive)
-      // This handles cases like "Prayer is an antiquated term..."
-      if (line.match(new RegExp(`^${originalQuery}\\s+is`, 'i'))) {
-        const maxChars = 200;
-        displayText = line.length > maxChars ? 
-          line.substring(0, maxChars) + "..." : line;
-        console.log(`Found direct definition: "${displayText}"`);
-        break;
-      }
-      
-      // Look for definitions that start with the term being defined (e.g., "Prayer is...")
-      if (line.match(new RegExp(`^${originalQuery}\\s+is`, 'i'))) {
-        const maxChars = 200;
-        displayText = line.length > maxChars ? 
-          line.substring(0, maxChars) + "..." : line;
-        console.log(`Found direct definition: "${displayText}"`);
-        break;
-      }
-      
       // Found a substantial line - use it
       const maxChars = 200;
       displayText = line.length > maxChars ? 
@@ -800,6 +781,26 @@ function showDefinitionResult(title, definition, originalQuery) {
           firstLine.substring(0, maxChars) + "..." : firstLine;
       } else {
         displayText = "Definition content not available. Click 'Read more' to view the full page.";
+      }
+    }
+    
+    // Ensure we have substantial content (at least 4 words)
+    const wordCount = displayText.trim().split(/\s+/).length;
+    if (wordCount < 4 && filteredLines.length > 1) {
+      // Try to get more content by combining lines
+      let combinedText = displayText;
+      for (let i = 1; i < Math.min(filteredLines.length, 3); i++) {
+        const additionalLine = filteredLines[i];
+        if (additionalLine.length >= 10) {
+          combinedText += " " + additionalLine;
+          if (combinedText.length >= 200) {
+            combinedText = combinedText.substring(0, 200) + "...";
+            break;
+          }
+        }
+      }
+      if (combinedText.trim().split(/\s+/).length >= 4) {
+        displayText = combinedText;
       }
     }
   }
