@@ -764,6 +764,16 @@ function showDefinitionResult(title, definition, originalQuery) {
         continue; // Skip the question line itself
       }
       
+      // Special case: Look for definitions that start with the term (case-insensitive)
+      // This handles cases like "Prayer is an antiquated term..."
+      if (line.match(new RegExp(`^${originalQuery}\\s+is`, 'i'))) {
+        const maxChars = 200;
+        displayText = line.length > maxChars ? 
+          line.substring(0, maxChars) + "..." : line;
+        console.log(`Found direct definition: "${displayText}"`);
+        break;
+      }
+      
       // Look for definitions that start with the term being defined (e.g., "Prayer is...")
       if (line.match(new RegExp(`^${originalQuery}\\s+is`, 'i'))) {
         const maxChars = 200;
