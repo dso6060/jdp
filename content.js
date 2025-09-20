@@ -797,6 +797,12 @@ function showDefinitionResult(title, definition, originalQuery) {
         continue;
       }
       
+      // Skip questions that are just asking "What is..." - look for the actual answer
+      if (line.match(/^What is.*\?$/i) && i < filteredLines.length - 1) {
+        console.log(`Skipping line ${i} - question, looking for answer: ${line.substring(0, 50)}...`);
+        continue;
+      }
+      
       // Found a substantial line - use it
       console.log(`Using line ${i} as content: ${line.substring(0, 50)}...`);
       const maxChars = 200;
