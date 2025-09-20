@@ -89,7 +89,7 @@ Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki
 
 ## Status
 
-- **Version 0.9.0** - Latest stable release with enhanced content extraction and error handling
+- **Version 0.9.0** - Latest stable release with better lookup and improved RegEx filters for better popup content display
 - **Development version** - Not published to Chrome Web Store
 - **Open Source** - Available for reference and contributions
 
