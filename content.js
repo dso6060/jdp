@@ -761,35 +761,54 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
-    // Clean up the definition text to remove metadata and find actual content
+    // Simplified approach: just get the first substantial paragraph after removing metadata
     let cleanDefinition = definition;
     
-    // Remove common metadata patterns
+    // Remove metadata lines
     cleanDefinition = cleanDefinition
-      .replace(/Content on this page has been reviewed and fact checked[^]*?Last updated: \d+/gi, '')
-      .replace(/Reviewed by:[^]*?Last updated: \d+/gi, '')
-      .replace(/Last updated: \d+/gi, '')
-      .replace(/Reviewed by: [^]*?\n/gi, '')
+      .replace(/Content on this page has been reviewed and fact checked\.?\s*/gi, '')
+      .replace(/Reviewed by: [^\n]*\s*/gi, '')
+      .replace(/Last updated: \d+\s*/gi, '')
       .trim();
     
     console.log("After metadata removal:", cleanDefinition.substring(0, 200) + "...");
     
-    // Try to find the "Official definition" section if it exists
-    const officialDefMatch = cleanDefinition.match(/Official definition[^]*?\n([^]*?)(?=\n\n[A-Z]|\n\n\n|$)/i);
-    if (officialDefMatch && officialDefMatch[1]) {
-      let officialDefText = officialDefMatch[1].trim();
-      console.log("Found official definition:", officialDefText.substring(0, 100) + "...");
-      if (officialDefText && !officialDefText.match(/^(Content on this page|Reviewed by|Last updated)/i)) {
-        const maxChars = 200;
-        displayText = officialDefText.length > maxChars ? 
-          officialDefText.substring(0, maxChars) + "..." : officialDefText;
-      } else {
-        // Fall back to finding the first meaningful paragraph
-        displayText = findFirstMeaningfulContent(cleanDefinition);
+    // Split into lines and find the first substantial line
+    const lines = cleanDefinition.split('\n').filter(line => line.trim().length > 0);
+    console.log("Found lines:", lines.length);
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      console.log(`Line ${i}:`, line.substring(0, 100) + "...");
+      
+      // Skip empty lines, headers, and metadata
+      if (line.length < 20 || 
+          line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
+          line.match(/^[A-Z][a-z]+$/) ||
+          line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+        console.log(`Skipping line ${i} - header/metadata`);
+        continue;
       }
-    } else {
-      // Use the first meaningful paragraph
-      displayText = findFirstMeaningfulContent(cleanDefinition);
+      
+      // Found a substantial line - use it
+      console.log(`Using line ${i} as content`);
+      const maxChars = 200;
+      displayText = line.length > maxChars ? 
+        line.substring(0, maxChars) + "..." : line;
+      break;
+    }
+    
+    // If no substantial line found, use the first non-empty line
+    if (!displayText || displayText.length < 20) {
+      console.log("No substantial line found, using first non-empty line");
+      const firstLine = lines.find(line => line.trim().length > 0);
+      if (firstLine) {
+        const maxChars = 200;
+        displayText = firstLine.length > maxChars ? 
+          firstLine.substring(0, maxChars) + "..." : firstLine;
+      } else {
+        displayText = "Definition content not available. Click 'Read more' to view the full page.";
+      }
     }
     
     console.log("Final displayText:", displayText.substring(0, 100) + "...");
