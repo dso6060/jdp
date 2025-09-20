@@ -643,7 +643,7 @@ function lookupDefinition(query) {
           .trim();
         
         // Always try to get more content using extract, but fall back to snippet if needed
-        const extractParams = `action=query&prop=extracts&explaintext=1&exintro=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
+        const extractParams = `action=query&prop=extracts&explaintext=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
         
         return fetch(`${api}?${extractParams}`)
           .then(response => response.json())
@@ -653,31 +653,9 @@ function lookupDefinition(query) {
               extractText = (extractData.query.pages[pageid].extract || "").trim();
             }
             
-            // If extract is empty, try without exintro=1 to get more content
-            if (!extractText) {
-              const fullExtractParams = `action=query&prop=extracts&explaintext=1&exsectionformat=plain&format=json&origin=*&pageids=${encodeURIComponent(pageid)}`;
-              
-              return fetch(`${api}?${fullExtractParams}`)
-                .then(response => response.json())
-                .then(fullExtractData => {
-                  let fullExtractText = "";
-                  if (fullExtractData && fullExtractData.query && fullExtractData.query.pages && fullExtractData.query.pages[pageid]) {
-                    fullExtractText = (fullExtractData.query.pages[pageid].extract || "").trim();
-                  }
-                  
-                  // Use full extract if available, otherwise fall back to snippet
-                  const finalText = fullExtractText || cleanSnippet;
-                  showDefinitionResult(title, finalText, query);
-                })
-                .catch(error => {
-                  console.error("Full extract fetch failed:", error);
-                  // Fall back to snippet even if it's short
-                  showDefinitionResult(title, cleanSnippet, query);
-                });
-            } else {
-              // Extract is good, use it
-              showDefinitionResult(title, extractText, query);
-            }
+            // Use extract if available, otherwise fall back to snippet
+            const finalText = extractText || cleanSnippet;
+            showDefinitionResult(title, finalText, query);
           })
           .catch(error => {
             console.error("Extract fetch failed:", error);
@@ -768,6 +746,7 @@ function showDefinitionResult(title, definition, originalQuery) {
   
   // Debug logging
   console.log("showDefinitionResult called with:", { title, definition: definition?.substring(0, 200) + "...", originalQuery });
+  console.log("Full definition content:", definition);
   
   // Ensure popup width adjusts to content
   floatingPopup.style.width = 'auto';
