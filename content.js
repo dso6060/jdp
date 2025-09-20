@@ -1170,23 +1170,42 @@ document.addEventListener("click", function(event) {
       return; // Extension context invalidated, don't proceed
     }
     
+    // Additional check to prevent chrome API calls if context is invalid
+    try {
+      chrome.runtime.getManifest();
+    } catch (e) {
+      return; // Context is invalid, exit early
+    }
+    
     if (floatingPopup && !floatingPopup.contains(event.target)) {
       floatingPopup.remove();
       floatingPopup = null;
     }
     
     // Check if click is outside side panel and send message to close it
-    chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
-      if (response && response.isOpen) {
-        // Side panel is open, send click outside message with window ID
-        chrome.windows.getCurrent((window) => {
-          chrome.runtime.sendMessage({ 
-            type: "CLICK_OUTSIDE_SIDE_PANEL", 
-            windowId: window.id 
-          });
-        });
-      }
-    });
+    try {
+      chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
+        try {
+          if (response && response.isOpen) {
+            // Side panel is open, send click outside message with window ID
+            chrome.windows.getCurrent((window) => {
+              try {
+                chrome.runtime.sendMessage({ 
+                  type: "CLICK_OUTSIDE_SIDE_PANEL", 
+                  windowId: window.id 
+                });
+              } catch (error) {
+                console.error("Error sending click outside message:", error.message);
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error in response handler:", error.message);
+        }
+      });
+    } catch (error) {
+      console.error("Error sending side panel status check:", error.message);
+    }
   } catch (error) {
     console.error("Error in click event handler:", error.message);
   }
