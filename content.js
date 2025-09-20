@@ -780,73 +780,58 @@ function showDefinitionResult(title, definition, originalQuery) {
   } else if (definition.trim().length < 10) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
-    // Simplified approach: just get the first substantial paragraph after removing metadata
-    let cleanDefinition = definition;
+    // More direct approach: split into lines and filter out metadata lines
+    const lines = definition.split('\n');
+    const filteredLines = [];
     
-    // Remove metadata lines more aggressively
-    cleanDefinition = cleanDefinition
-      .replace(/Content on this page has been reviewed and fact checked\.?\s*/gi, '')
-      .replace(/Reviewed by: [^\n]*\s*/gi, '')
-      .replace(/Last updated: \d+\s*/gi, '')
-      .replace(/Content on this page has been reviewed and fact checked[^]*?Last updated: \d+/gi, '')
-      .replace(/Reviewed by: [^]*?Last updated: \d+/gi, '')
-      .replace(/^Content on this page[^]*?Last updated: \d+\s*/gim, '')
-      .replace(/^Reviewed by: [^]*?\n/gim, '')
-      .replace(/^Last updated: \d+\s*/gim, '')
-      .trim();
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Skip metadata lines
+      if (trimmedLine.match(/^Content on this page has been reviewed/i) ||
+          trimmedLine.match(/^Reviewed by:/i) ||
+          trimmedLine.match(/^Last updated:/i) ||
+          trimmedLine === '') {
+        console.log("Filtering out metadata line:", trimmedLine);
+        continue;
+      }
+      
+      filteredLines.push(trimmedLine);
+    }
+    
+    const cleanDefinition = filteredLines.join('\n').trim();
     
     console.log("After metadata removal:", cleanDefinition.substring(0, 200) + "...");
     
-    // First, try to find content that starts with "The" (likely actual definition content)
-    const theContentMatch = cleanDefinition.match(/(The [^]*?)(?=\n\n|\n[A-Z]|$)/);
-    if (theContentMatch && theContentMatch[1]) {
-      let theContent = theContentMatch[1].trim();
-      if (theContent.length > 30) {
-        console.log("Found 'The' content:", theContent.substring(0, 100) + "...");
-        const maxChars = 200;
-        displayText = theContent.length > maxChars ? 
-          theContent.substring(0, maxChars) + "..." : theContent;
-      }
-    }
+    // Now find the first substantial content line
+    console.log("Filtered lines:", filteredLines.length);
     
-    // If that didn't work, try line-by-line approach
-    if (!displayText || displayText.length < 30) {
-      const lines = cleanDefinition.split('\n').filter(line => line.trim().length > 0);
-      console.log("Found lines:", lines.length);
+    for (let i = 0; i < filteredLines.length; i++) {
+      const line = filteredLines[i];
+      console.log(`Filtered line ${i}:`, line.substring(0, 100) + "...");
       
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        console.log(`Line ${i}:`, line.substring(0, 100) + "...");
-        
-        // Skip empty lines, headers, and metadata
-        if (line.length < 20 || 
-            line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
-            line.match(/^[A-Z][a-z]+$/) ||
-            line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/) ||
-            line.match(/Content on this page has been reviewed/i) ||
-            line.match(/Reviewed by:/i) ||
-            line.match(/Last updated:/i) ||
-            line.match(/^Content on this page/i) ||
-            line.match(/^Reviewed by/i) ||
-            line.match(/^Last updated/i)) {
-          console.log(`Skipping line ${i} - header/metadata: ${line.substring(0, 50)}...`);
-          continue;
-        }
-        
-        // Found a substantial line - use it
-        console.log(`Using line ${i} as content`);
-        const maxChars = 200;
-        displayText = line.length > maxChars ? 
-          line.substring(0, maxChars) + "..." : line;
-        break;
+      // Skip headers and short lines
+      if (line.length < 20 || 
+          line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
+          line.match(/^[A-Z][a-z]+$/) ||
+          line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+        console.log(`Skipping line ${i} - header: ${line.substring(0, 50)}...`);
+        continue;
       }
+      
+      // Found a substantial line - use it
+      console.log(`Using line ${i} as content: ${line.substring(0, 50)}...`);
+      const maxChars = 200;
+      displayText = line.length > maxChars ? 
+        line.substring(0, maxChars) + "..." : line;
+      break;
     }
     
     // If no substantial line found, use the first non-empty line
     if (!displayText || displayText.length < 20) {
       console.log("No substantial line found, using first non-empty line");
-      const firstLine = lines.find(line => line.trim().length > 0);
-      if (firstLine) {
+      if (filteredLines.length > 0) {
+        const firstLine = filteredLines[0];
         const maxChars = 200;
         displayText = firstLine.length > maxChars ? 
           firstLine.substring(0, maxChars) + "..." : firstLine;
