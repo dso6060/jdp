@@ -736,8 +736,30 @@ function showDefinitionResult(title, definition, originalQuery) {
       }
       
       // Skip questions that are just asking "What is..." - look for the actual answer
-      if (line.match(/^What is.*\?$/i) && i < filteredLines.length - 1) {
-        continue;
+      if (line.match(/^What is.*\?$/i)) {
+        // Look for the next substantial line after the question
+        for (let j = i + 1; j < filteredLines.length; j++) {
+          const nextLine = filteredLines[j];
+          if (nextLine.length >= 20 && 
+              !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
+              !nextLine.match(/^What is.*\?$/i)) {
+            // Found the actual definition after the question
+            const maxChars = 200;
+            displayText = nextLine.length > maxChars ? 
+              nextLine.substring(0, maxChars) + "..." : nextLine;
+            break;
+          }
+        }
+        if (displayText) break; // Found definition after question
+        continue; // Skip the question line itself
+      }
+      
+      // Look for definitions that start with the term being defined (e.g., "Prayer is...")
+      if (line.match(new RegExp(`^${originalQuery}\\s+is`, 'i'))) {
+        const maxChars = 200;
+        displayText = line.length > maxChars ? 
+          line.substring(0, maxChars) + "..." : line;
+        break;
       }
       
       // Found a substantial line - use it
