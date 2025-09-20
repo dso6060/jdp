@@ -774,7 +774,7 @@ function showDefinitionResult(title, definition, originalQuery) {
   floatingPopup.style.maxWidth = '400px';
   
   // Handle empty or very short definitions
-  let displayText = definition;
+  let displayText = "";
   if (!definition || definition.trim().length === 0) {
     displayText = "Definition content not available. Click 'Read more' to view the full page.";
   } else if (definition.trim().length < 10) {
@@ -841,6 +841,15 @@ function showDefinitionResult(title, definition, originalQuery) {
     }
     
     console.log("Final displayText:", displayText.substring(0, 100) + "...");
+  }
+  
+  // Ensure displayText is never empty or just metadata
+  if (!displayText || displayText.trim().length === 0 || 
+      displayText.match(/Content on this page has been reviewed/i) ||
+      displayText.match(/Reviewed by:/i) ||
+      displayText.match(/Last updated:/i)) {
+    console.log("DisplayText is empty or metadata, using fallback");
+    displayText = "Definition content not available. Click 'Read more' to view the full page.";
   }
   
   try {
