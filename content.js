@@ -708,9 +708,20 @@ function showDefinitionResult(title, definition, originalQuery) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
     // Try to find the "Official definition" section if it exists
-    const officialDefMatch = definition.match(/Official definition[^]*?(?=\n\n|\n[A-Z]|$)/i);
-    if (officialDefMatch) {
-      displayText = officialDefMatch[0].trim();
+    const officialDefMatch = definition.match(/Official definition[^]*?\n([^]*?)(?=\n\n[A-Z]|\n\n\n|$)/i);
+    if (officialDefMatch && officialDefMatch[1]) {
+      let officialDefText = officialDefMatch[1].trim();
+      if (officialDefText) {
+        const maxChars = 200;
+        displayText = officialDefText.length > maxChars ? 
+          officialDefText.substring(0, maxChars) + "..." : officialDefText;
+      } else {
+        // Fall back to first paragraph if official definition content is empty
+        const firstParagraph = definition.split('\n\n')[0];
+        const maxChars = 200;
+        displayText = firstParagraph.length > maxChars ? 
+          firstParagraph.substring(0, maxChars) + "..." : firstParagraph;
+      }
     } else {
       // Use the first paragraph or first 200 characters
       const firstParagraph = definition.split('\n\n')[0];
