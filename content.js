@@ -462,10 +462,15 @@ function requestDefinitionFromSidePanel(query) {
       
       try {
         if (results && document.body.contains(results)) {
+          let errorMessage = "Failed to submit request. Please try again.";
+          if (error.message && error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
+            errorMessage = "Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.";
+          }
+          
           results.innerHTML = `
             <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
               <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
-              <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to submit request for "${query}". Please try again.</div>
+              <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${errorMessage}</div>
               <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
               <div style="color: #721c24; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: ${error.name} - ${error.message}</div>
             </div>
@@ -762,14 +767,19 @@ function requestDefinition(query) {
     mode: 'no-cors',
     body: formData
   })
-  .then(() => {
+  .then((response) => {
     // Success - show message in popup
     console.log("Request submitted successfully");
     showRequestSuccess(query);
   })
   .catch((error) => {
     console.error("Request failed:", error);
-    showRequestError("Failed to submit request. Please try again.");
+    // Check if it's a blocked request
+    if (error.message && error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
+      showRequestError("Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.");
+    } else {
+      showRequestError("Failed to submit request. Please try again.");
+    }
   });
 }
 
@@ -858,12 +868,18 @@ function showRequestError(message) {
     return;
   }
   
+  // Check if it's a blocked request and provide helpful message
+  let displayMessage = message;
+  if (message.includes('ERR_BLOCKED_BY_CLIENT') || message.includes('blocked by ad blocker')) {
+    displayMessage = "Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.";
+  }
+  
   floatingPopup.innerHTML = `
     <div style="color: #dc3545; margin-bottom: 8px;">
       <strong>⚠ Request Failed</strong>
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
-      ${message}
+      ${displayMessage}
     </div>
     <div style="margin-bottom: 8px; color: #666; font-size: 11px; background: #fff3cd; padding: 8px; border-radius: 4px; border-left: 3px solid #ffc107;">
       <strong>Alternative:</strong> You can also request definitions by clicking the extension icon and using the side panel search feature.
