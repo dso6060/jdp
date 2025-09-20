@@ -745,7 +745,26 @@ function findFirstMeaningfulContent(text) {
 }
 
 function showDefinitionResult(title, definition, originalQuery) {
-  if (!floatingPopup) return;
+  // Check if extension context is still valid
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated - cannot proceed with definition display");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed:", error.message);
+    return;
+  }
+  
+  if (!floatingPopup) {
+    console.error("showDefinitionResult: floatingPopup is null");
+    return;
+  }
+  
+  if (!document.body.contains(floatingPopup)) {
+    console.error("showDefinitionResult: floatingPopup is not in DOM");
+    return;
+  }
   
   // Debug logging
   console.log("showDefinitionResult called with:", { title, definition: definition?.substring(0, 200) + "...", originalQuery });
@@ -814,29 +833,76 @@ function showDefinitionResult(title, definition, originalQuery) {
     console.log("Final displayText:", displayText.substring(0, 100) + "...");
   }
   
-  floatingPopup.innerHTML = `
-    <div style="margin-bottom: 8px;">
-      <strong style="color: #0066cc; word-wrap: break-word;">${title}</strong>
-    </div>
-    <div style="margin-bottom: 8px; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word;">
-      ${displayText}
-    </div>
-    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-      <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
-         target="_blank" 
-         style="color: #0066cc; text-decoration: none; font-size: 12px;">
-        Read more →
-      </a>
-      <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
-        ✕
-      </button>
-    </div>
-  `;
+  try {
+    floatingPopup.innerHTML = `
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #0066cc; word-wrap: break-word;">${title}</strong>
+      </div>
+      <div style="margin-bottom: 8px; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word;">
+        ${displayText}
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
+           target="_blank" 
+           style="color: #0066cc; text-decoration: none; font-size: 12px;">
+          Read more →
+        </a>
+        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+          ✕
+        </button>
+      </div>
+    `;
+  } catch (error) {
+    console.error("Failed to update popup innerHTML:", error.message);
+    // Try to show a simple error message
+    try {
+      floatingPopup.innerHTML = `
+        <div style="margin-bottom: 8px;">
+          <strong style="color: #0066cc;">${title}</strong>
+        </div>
+        <div style="margin-bottom: 8px; color: #dc3545;">
+          Error displaying content. Click 'Read more' to view the full page.
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
+             target="_blank" 
+             style="color: #0066cc; text-decoration: none; font-size: 12px;">
+            Read more →
+          </a>
+          <button onclick="this.parentElement.parentElement.remove()" 
+                  style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+            ✕
+          </button>
+        </div>
+      `;
+    } catch (fallbackError) {
+      console.error("Failed to show fallback content:", fallbackError.message);
+    }
+  }
 }
 
 function showNoResult(query) {
-  if (!floatingPopup) return;
+  // Check if extension context is still valid
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated - cannot proceed with no result display");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed:", error.message);
+    return;
+  }
+  
+  if (!floatingPopup) {
+    console.error("showNoResult: floatingPopup is null");
+    return;
+  }
+  
+  if (!document.body.contains(floatingPopup)) {
+    console.error("showNoResult: floatingPopup is not in DOM");
+    return;
+  }
   
   floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
@@ -1093,17 +1159,40 @@ function createErrorPopup(message) {
 }
 
 function showError(message) {
-  if (!floatingPopup) return;
+  // Check if extension context is still valid
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated - cannot proceed with error display");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed:", error.message);
+    return;
+  }
   
-  floatingPopup.innerHTML = `
-    <div style="color: #dc3545; margin-bottom: 8px;">
-      ⚠ ${message}
-    </div>
-    <button onclick="this.parentElement.remove()" 
-            style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
-      ✕
-    </button>
-  `;
+  if (!floatingPopup) {
+    console.error("showError: floatingPopup is null");
+    return;
+  }
+  
+  if (!document.body.contains(floatingPopup)) {
+    console.error("showError: floatingPopup is not in DOM");
+    return;
+  }
+  
+  try {
+    floatingPopup.innerHTML = `
+      <div style="color: #dc3545; margin-bottom: 8px;">
+        ⚠ ${message}
+      </div>
+      <button onclick="this.parentElement.remove()" 
+              style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+        ✕
+      </button>
+    `;
+  } catch (error) {
+    console.error("Failed to show error message:", error.message);
+  }
 }
 
 // Hide popup when clicking elsewhere and handle side panel clicks
