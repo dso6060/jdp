@@ -789,11 +789,10 @@ function showDefinitionResult(title, definition, originalQuery) {
       const line = filteredLines[i];
       console.log(`Filtered line ${i}:`, line.substring(0, 100) + "...");
       
-      // Skip headers and short lines
-      if (line.length < 20 || 
-          line.match(/^(Introduction|Objectives|Procedures|Implementation|Challenges|Impact|Conclusion|Table of contents|Contents|Navigation|References|See also)$/i) ||
-          line.match(/^[A-Z][a-z]+$/) ||
-          line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+      // Skip only obvious headers and very short lines
+      if (line.length < 10 || 
+          line.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) ||
+          (line.match(/^[A-Z][a-z]+$/) && line.length < 20)) {
         console.log(`Skipping line ${i} - header: ${line.substring(0, 50)}...`);
         continue;
       }
@@ -807,7 +806,7 @@ function showDefinitionResult(title, definition, originalQuery) {
     }
     
     // If no substantial line found, use the first non-empty line
-    if (!displayText || displayText.length < 20) {
+    if (!displayText || displayText.length < 10) {
       console.log("No substantial line found, using first non-empty line");
       if (filteredLines.length > 0) {
         const firstLine = filteredLines[0];
@@ -824,9 +823,7 @@ function showDefinitionResult(title, definition, originalQuery) {
   
   // Ensure displayText is never empty or just metadata
   if (!displayText || displayText.trim().length === 0 || 
-      displayText.match(/Content on this page has been reviewed/i) ||
-      displayText.match(/Reviewed by:/i) ||
-      displayText.match(/Last updated:/i)) {
+      (displayText.match(/Content on this page has been reviewed/i) && displayText.length < 100)) {
     console.log("DisplayText is empty or metadata, using fallback");
     displayText = "Definition content not available. Click 'Read more' to view the full page.";
   }
