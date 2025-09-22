@@ -9,12 +9,11 @@ var sidePanelOverlay = null;
 
 // Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
 let CONFIG = window.EXTENSION_CONFIG || {
-  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
   WEBHOOK: {
     ENABLED: true,
-    TIMEOUT: 10000,
-    ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
+    TIMEOUT: 10000
+    // Access key is now server-side only
   },
   API: {
     TIMEOUT: 15000
@@ -26,6 +25,10 @@ let CONFIG = window.EXTENSION_CONFIG || {
     MIN_WORD_COUNT: 4
   }
 };
+
+// Server endpoints (update these to your deployed server)
+const SERVER_BASE_URL = "https://your-server-domain.com";
+const WEBHOOK_ENDPOINT = `${SERVER_BASE_URL}/webhook`;
 
 function handleRightClick(event) {
   const selection = window.getSelection();
@@ -354,23 +357,21 @@ function requestDefinitionFromSidePanel(query) {
   
   console.log("requestDefinitionFromSidePanel called with query:", query);
   console.log("CONFIG object:", CONFIG);
-  console.log("WEBHOOK_URL:", CONFIG.WEBHOOK_URL);
-  console.log("ACCESS_KEY:", CONFIG.WEBHOOK.ACCESS_KEY);
+  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
   
   // Get current page URL
   const pageUrl = window.location.href;
   const nowIso = new Date().toISOString();
   
-  // Prepare request data
+  // Prepare request data (access key is now handled server-side)
   const requestData = { 
     term: query, 
     page_url: pageUrl, 
-    timestamp: nowIso,
-    access_key: CONFIG.WEBHOOK.ACCESS_KEY
+    timestamp: nowIso
   };
   
   console.log("Sending webhook request from side panel:", requestData);
-  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
+  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
   
   // Show loading state in side panel
   const results = document.getElementById('jdp-results');
@@ -391,64 +392,46 @@ function requestDefinitionFromSidePanel(query) {
     `;
   }
   
-  // Use fetch with no-cors to avoid navigation and preserve popup
-  const formData = new FormData();
-  formData.append('term', query);
-  formData.append('page_url', pageUrl);
-  formData.append('timestamp', nowIso);
-  formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
-  
-  // Log FormData contents for debugging (with error handling)
-  try {
-    console.log("FormData contents:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-  } catch (error) {
-    console.log("Could not log FormData contents (extension context may be invalidated):", error.message);
-  }
-  
-  // Execute fetch with proper error handling and detailed debugging
-  console.log("About to send fetch request to:", CONFIG.WEBHOOK_URL);
+  // Use fetch with proper CORS to our secure server
+  console.log("About to send fetch request to:", WEBHOOK_ENDPOINT);
   console.log("Request method: POST");
-  console.log("Request mode: no-cors");
-  console.log("FormData prepared with:", {
-    term: query,
-    page_url: pageUrl,
-    timestamp: nowIso,
-    access_key: CONFIG.WEBHOOK.ACCESS_KEY
-  });
+  console.log("Request data:", requestData);
   
   try {
-    const fetchPromise = fetch(CONFIG.WEBHOOK_URL, {
+    const fetchPromise = fetch(WEBHOOK_ENDPOINT, {
       method: 'POST',
-      mode: 'no-cors',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
     });
     
     console.log("Fetch promise created, waiting for response...");
     
     fetchPromise
-    .then((response) => {
+    .then(async (response) => {
       console.log("Fetch response received:", response);
-      console.log("Response type:", response.type);
       console.log("Response status:", response.status);
       console.log("Response ok:", response.ok);
       
-      // Note: With no-cors mode, we can't read the response body
-      // but we can still check if the request was sent
-      console.log("Request submitted successfully from side panel");
-      
       try {
-        if (results && document.body.contains(results)) {
-          results.innerHTML = `
-            <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-              <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
-              <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
-              <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
-              <div style="color: #155724; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: Response type: ${response.type}, Status: ${response.status}</div>
-            </div>
-          `;
+        const responseData = await response.json();
+        console.log("Response data:", responseData);
+        
+        if (response.ok && responseData.success) {
+          console.log("Request submitted successfully from side panel");
+          
+          if (results && document.body.contains(results)) {
+            results.innerHTML = `
+              <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
+                <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
+                <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
+              </div>
+            `;
+          }
+        } else {
+          throw new Error(responseData.error || `Server responded with status: ${response.status}`);
         }
       } catch (domError) {
         console.error("Could not update DOM after success (extension context may be invalidated):", domError.message);
@@ -928,33 +911,36 @@ function requestDefinition(query) {
   const pageUrl = window.location.href;
   const nowIso = new Date().toISOString();
   
-  // Prepare request data
+  // Prepare request data (access key is now handled server-side)
   const requestData = { 
     term: query, 
     page_url: pageUrl, 
-    timestamp: nowIso,
-    access_key: CONFIG.WEBHOOK.ACCESS_KEY
+    timestamp: nowIso
   };
   
   console.log("Sending webhook request:", requestData);
-  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
+  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
   
-  // Use fetch with no-cors to avoid navigation and preserve popup
-  const formData = new FormData();
-  formData.append('term', query);
-  formData.append('page_url', pageUrl);
-  formData.append('timestamp', nowIso);
-  formData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
-  
-  fetch(CONFIG.WEBHOOK_URL, {
+  fetch(WEBHOOK_ENDPOINT, {
     method: 'POST',
-    mode: 'no-cors',
-    body: formData
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData)
   })
-  .then((response) => {
-    // Success - show message in popup
-    console.log("Request submitted successfully");
-    showRequestSuccess(query);
+  .then(async (response) => {
+    try {
+      const responseData = await response.json();
+      if (response.ok && responseData.success) {
+        console.log("Request submitted successfully");
+        showRequestSuccess(query);
+      } else {
+        throw new Error(responseData.error || `Server responded with status: ${response.status}`);
+      }
+    } catch (parseError) {
+      console.error("Failed to parse response:", parseError);
+      showRequestError("Failed to submit request. Please try again.");
+    }
   })
   .catch((error) => {
     console.error("Request failed:", error);

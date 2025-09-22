@@ -41,7 +41,6 @@ function onTabsReceived(tabs) {
 if (typeof CONFIG === 'undefined') {
   // Fallback configuration if config.js is not available
   window.CONFIG = {
-    WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
       ENABLED: true
@@ -58,7 +57,11 @@ if (typeof CONFIG === 'undefined') {
   };
 }
 
-let webhookUrl = CONFIG.WEBHOOK_URL || "";
+// Server endpoints (update these to your deployed server)
+const SERVER_BASE_URL = "https://your-server-domain.com";
+const WEBHOOK_ENDPOINT = `${SERVER_BASE_URL}/webhook`;
+
+let webhookUrl = WEBHOOK_ENDPOINT;
 
 // Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["webhookUrl"], (data) => {
@@ -203,8 +206,14 @@ function showNoResultUI(query) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ term: query, page_url: pageUrl, timestamp: nowIso })
         });
+        
         if (resp.ok) {
-          document.getElementById("status").innerHTML = "Request submitted.";
+          const responseData = await resp.json();
+          if (responseData.success) {
+            document.getElementById("status").innerHTML = "Request submitted.";
+          } else {
+            document.getElementById("status").innerHTML = "Could not submit request.";
+          }
         } else {
           document.getElementById("status").innerHTML = "Could not submit request.";
         }

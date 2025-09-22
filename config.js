@@ -1,52 +1,116 @@
 // Configuration file for Justice Definitions Project Extension
-// This file contains all configurable settings that can be modified without touching core code
+// This file now fetches configuration from the secure server
 
-const CONFIG = {
-  // External Resource URLs (ALL-CAPS for easy identification by developers)
-  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwQ0XCO7K5qUnDrRW1c1xsZ8PtKnAJJ2AA7BGUmC6ElniS7IAQlV_VE3zpRMZxi_rXnSw/exec",
+// Default configuration (fallback)
+const DEFAULT_CONFIG = {
+  // External Resource URLs
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
-
   
-  // Webhook Configuration
+  // Webhook Configuration (now server-side)
   WEBHOOK: {
-    // Enable/disable webhook functionality
     ENABLED: true,
-    
-    // Timeout for webhook requests (in milliseconds)
     TIMEOUT: 10000,
-    
-    // Access key for authentication (must match Google Apps Script)
-    ACCESS_KEY: "JDP_2025_Admin_AbC123XyZ789"
+    // Access key is now server-side only
   },
   
   // API Configuration
   API: {
-    // Request timeout (in milliseconds)
     TIMEOUT: 15000
   },
   
   // Display Configuration
   DISPLAY: {
-    // Maximum characters for definition preview
     MAX_CHARS: 140,
-    
-    // Extended character limit for incomplete sentences
     EXTENDED_CHARS: 200,
-    
-    // Maximum characters for very short content
     MAX_EXTENDED_CHARS: 250,
-    
-    // Minimum word count to trigger extended search
     MIN_WORD_COUNT: 4
   },
   
-    // Extension Metadata
-    EXTENSION: {
-      NAME: "Justice Definitions Project",
-      VERSION: "0.8.0",
-      DESCRIPTION: "Make legal language accessible by connecting webpage selections to the Justice Definitions Project"
-    }
+  // Extension Metadata
+  EXTENSION: {
+    NAME: "Justice Definitions Project",
+    VERSION: "0.9.0",
+    DESCRIPTION: "Make legal language accessible by connecting webpage selections to the Justice Definitions Project"
+  }
 };
+
+// Server configuration URL (update this to your deployed server)
+const CONFIG_SERVER_URL = "https://your-server-domain.com/config";
+
+// Rate limiting storage
+const rateLimitStore = {
+  requests: new Map(),
+  lastCleanup: Date.now()
+};
+
+// Rate limiting function
+function checkClientRateLimit() {
+  const now = Date.now();
+  const windowSize = 60000; // 1 minute
+  const maxRequests = 30; // per minute
+  
+  // Clean up old entries every 5 minutes
+  if (now - rateLimitStore.lastCleanup > 300000) {
+    for (const [key, timestamp] of rateLimitStore.requests.entries()) {
+      if (now - timestamp > windowSize) {
+        rateLimitStore.requests.delete(key);
+      }
+    }
+    rateLimitStore.lastCleanup = now;
+  }
+  
+  // Count requests in current window
+  const windowStart = now - windowSize;
+  const recentRequests = Array.from(rateLimitStore.requests.values())
+    .filter(timestamp => timestamp > windowStart).length;
+  
+  if (recentRequests >= maxRequests) {
+    return false;
+  }
+  
+  // Record this request
+  rateLimitStore.requests.set(now, now);
+  return true;
+}
+
+// Fetch configuration from server
+async function fetchServerConfig() {
+  try {
+    // Check client-side rate limiting first
+    if (!checkClientRateLimit()) {
+      console.warn('Client rate limit exceeded, using default config');
+      return DEFAULT_CONFIG;
+    }
+    
+    const response = await fetch(CONFIG_SERVER_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Server config fetch failed: ${response.status}`);
+    }
+    
+    const serverConfig = await response.json();
+    console.log('Server configuration loaded successfully');
+    return { ...DEFAULT_CONFIG, ...serverConfig };
+  } catch (error) {
+    console.warn('Failed to fetch server configuration, using defaults:', error.message);
+    return DEFAULT_CONFIG;
+  }
+}
+
+// Initialize configuration
+let CONFIG = DEFAULT_CONFIG;
+
+// Load server configuration asynchronously
+fetchServerConfig().then(serverConfig => {
+  CONFIG = serverConfig;
+  console.log('Configuration updated from server');
+});
 
 // Make config available globally for extension
 window.EXTENSION_CONFIG = CONFIG;
