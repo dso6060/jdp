@@ -34,6 +34,129 @@ function safeExecute(fn, errorMessage = "Extension context invalidated") {
   }
 }
 
+// Function to filter out non-English content from definitions
+function filterEnglishContent(text) {
+  if (!text || typeof text !== 'string') {
+    return text;
+  }
+  
+  // Split text into lines for processing
+  const lines = text.split('\n');
+  const englishLines = [];
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    // Skip empty lines
+    if (!trimmedLine) {
+      continue;
+    }
+    
+    // Check if line contains non-English characters (excluding common punctuation)
+    // This regex matches lines that contain characters from non-Latin scripts
+    const nonEnglishPattern = /[\u0080-\uFFFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2C60-\u2C7F\uA720-\uA7FF\uAB30-\uAB6F\uFB00-\uFB4F]/;
+    
+    // Skip lines with non-English characters
+    if (nonEnglishPattern.test(trimmedLine)) {
+      console.log(`Filtering out non-English line: "${trimmedLine}"`);
+      continue;
+    }
+    
+    // Additional check for common non-English language indicators
+    const nonEnglishIndicators = [
+      /हिंदी में देखने के लिए क्लिक करें/i, // Hindi
+      /click to view in hindi/i,
+      /ver en español/i, // Spanish
+      /voir en français/i, // French
+      /auf deutsch/i, // German
+      /中文/i, // Chinese
+      /日本語/i, // Japanese
+      /한국어/i, // Korean
+      /русский/i, // Russian
+      /العربية/i, // Arabic
+      /עברית/i, // Hebrew
+      /ελληνικά/i, // Greek
+      /português/i, // Portuguese
+      /italiano/i, // Italian
+      /nederlands/i, // Dutch
+      /svenska/i, // Swedish
+      /norsk/i, // Norwegian
+      /dansk/i, // Danish
+      /suomi/i, // Finnish
+      /polski/i, // Polish
+      /čeština/i, // Czech
+      /magyar/i, // Hungarian
+      /română/i, // Romanian
+      /български/i, // Bulgarian
+      /hrvatski/i, // Croatian
+      /slovenščina/i, // Slovenian
+      /slovenský/i, // Slovak
+      /eesti/i, // Estonian
+      /latviešu/i, // Latvian
+      /lietuvių/i, // Lithuanian
+      /türkçe/i, // Turkish
+      /فارسی/i, // Persian
+      /اردو/i, // Urdu
+      /বাংলা/i, // Bengali
+      /தமிழ்/i, // Tamil
+      /తెలుగు/i, // Telugu
+      /मराठी/i, // Marathi
+      /ગુજરાતી/i, // Gujarati
+      /ಕನ್ನಡ/i, // Kannada
+      /മലയാളം/i, // Malayalam
+      /ଓଡ଼ିଆ/i, // Odia
+      /ਪੰਜਾਬੀ/i, // Punjabi
+      /অসমীয়া/i, // Assamese
+      /नेपाली/i, // Nepali
+      /සිංහල/i, // Sinhala
+      /မြန်မာ/i, // Burmese
+      /ខ្មែរ/i, // Khmer
+      /ລາວ/i, // Lao
+      /ไทย/i, // Thai
+      /tiếng việt/i, // Vietnamese
+      /bahasa indonesia/i, // Indonesian
+      /bahasa melayu/i, // Malay
+      /filipino/i, // Filipino
+      /tagalog/i, // Tagalog
+      /cebuano/i, // Cebuano
+      /ilokano/i, // Ilocano
+      /hiligaynon/i, // Hiligaynon
+      /waray/i, // Waray
+      /kapampangan/i, // Kapampangan
+      /pangasinan/i, // Pangasinan
+      /bikol/i, // Bikol
+      /chavacano/i, // Chavacano
+      /maguindanao/i, // Maguindanao
+      /maranao/i, // Maranao
+      /tausug/i, // Tausug
+      /yakan/i, // Yakan
+      /sama/i, // Sama
+      /badjao/i, // Badjao
+      /maguindanao/i, // Maguindanao
+      /maranao/i, // Maranao
+      /tausug/i, // Tausug
+      /yakan/i, // Yakan
+      /sama/i, // Sama
+      /badjao/i, // Badjao
+    ];
+    
+    let isNonEnglish = false;
+    for (const pattern of nonEnglishIndicators) {
+      if (pattern.test(trimmedLine)) {
+        console.log(`Filtering out non-English indicator line: "${trimmedLine}"`);
+        isNonEnglish = true;
+        break;
+      }
+    }
+    
+    if (!isNonEnglish) {
+      englishLines.push(trimmedLine);
+    }
+  }
+  
+  return englishLines.join('\n').trim();
+}
+
 // Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
 let CONFIG = window.EXTENSION_CONFIG || {
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
@@ -333,12 +456,15 @@ function performSidePanelSearch(query) {
           // Clean up the snippet
           const tmp = document.createElement("div");
           tmp.innerHTML = snippet;
-          const cleanSnippet = (tmp.textContent || tmp.innerText || "")
+          let cleanSnippet = (tmp.textContent || tmp.innerText || "")
             .replace(/\[\[[^\]]+\]\]/g, "")
             .replace(/\{\{[^}]+\}\}/g, "")
             .replace(/==+[^=]*==+/g, "")
             .replace(/\s+/g, " ")
             .trim();
+          
+          // Filter out non-English content
+          cleanSnippet = filterEnglishContent(cleanSnippet);
           
           const sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
           
@@ -714,13 +840,18 @@ function lookupDefinition(query) {
             }
             
             // Use extract if available, otherwise fall back to snippet
-            const finalText = extractText || cleanSnippet;
+            let finalText = extractText || cleanSnippet;
+            
+            // Filter out non-English content
+            finalText = filterEnglishContent(finalText);
+            
             showDefinitionResult(title, finalText, query);
           })
           .catch(error => {
             console.error("Extract fetch failed:", error);
-            // Fall back to snippet even if it's short
-            showDefinitionResult(title, cleanSnippet, query);
+            // Fall back to snippet even if it's short, but still filter for English
+            const filteredSnippet = filterEnglishContent(cleanSnippet);
+            showDefinitionResult(title, filteredSnippet, query);
           });
       } else {
         showNoResult(query);
