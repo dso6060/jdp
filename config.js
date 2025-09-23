@@ -10,7 +10,6 @@ const DEFAULT_CONFIG = {
   WEBHOOK: {
     ENABLED: true,
     TIMEOUT: 10000,
-    // Access key is now server-side only
   },
   
   // API Configuration
@@ -35,7 +34,7 @@ const DEFAULT_CONFIG = {
 };
 
 // Server configuration URL (update this to your deployed server)
-const CONFIG_SERVER_URL = "https://your-server-domain.com/config";
+const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec";
 
 // Rate limiting storage
 const rateLimitStore = {

@@ -42,6 +42,8 @@ const CONFIG = {
     ALLOWED_ORIGINS: [
       'chrome-extension://',
       'moz-extension://',
+      'safari-extension://',
+      'brave-extension://',
       'https://jdc-definitions.wikibase.wiki'
     ]
   },
@@ -148,3 +150,4 @@ module.exports = {
   validateAccessKey,
   logRequest
 };
+
