@@ -34,6 +34,61 @@ function safeExecute(fn, errorMessage = "Extension context invalidated") {
   }
 }
 
+// Function to store request locally when webhook fails
+function storeRequestLocally(requestData) {
+  try {
+    // Get existing stored requests
+    const existingRequests = JSON.parse(localStorage.getItem('jdp_stored_requests') || '[]');
+    
+    // Add new request with timestamp
+    const storedRequest = {
+      ...requestData,
+      stored_at: new Date().toISOString(),
+      id: Date.now() + Math.random()
+    };
+    
+    existingRequests.push(storedRequest);
+    
+    // Keep only last 50 requests to avoid storage bloat
+    if (existingRequests.length > 50) {
+      existingRequests.splice(0, existingRequests.length - 50);
+    }
+    
+    // Store back to localStorage
+    localStorage.setItem('jdp_stored_requests', JSON.stringify(existingRequests));
+    
+    console.log(`Request stored locally. Total stored requests: ${existingRequests.length}`);
+    console.log('Stored request:', storedRequest);
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to store request locally:', error);
+    return false;
+  }
+}
+
+// Function to get stored requests
+function getStoredRequests() {
+  try {
+    return JSON.parse(localStorage.getItem('jdp_stored_requests') || '[]');
+  } catch (error) {
+    console.error('Failed to get stored requests:', error);
+    return [];
+  }
+}
+
+// Function to clear stored requests
+function clearStoredRequests() {
+  try {
+    localStorage.removeItem('jdp_stored_requests');
+    console.log('Stored requests cleared');
+    return true;
+  } catch (error) {
+    console.error('Failed to clear stored requests:', error);
+    return false;
+  }
+}
+
 // Function to filter out non-English content from definitions
 function filterEnglishContent(text) {
   if (!text || typeof text !== 'string') {
@@ -638,13 +693,30 @@ function requestDefinitionFromSidePanel(query) {
           }
         } else {
           console.error("Server returned error:", responseData.error);
-          if (results && document.body.contains(results)) {
-            results.innerHTML = `
-              <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Server Error</div>
-                <div style="color: #856404; font-size: 14px; line-height: 1.5;">${responseData.error || 'Unknown server error'}</div>
-              </div>
-            `;
+          
+          // If it's an "Invalid page URL" error, try to store locally as fallback
+          if (responseData.error && responseData.error.includes("Invalid page URL")) {
+            console.log("Attempting to store request locally as fallback...");
+            storeRequestLocally(requestData);
+            
+            if (results && document.body.contains(results)) {
+              results.innerHTML = `
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                  <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Webhook Server Issue</div>
+                  <div style="color: #856404; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Webhook server rejected the page URL. Request has been stored locally for manual processing.</div>
+                  <div style="color: #856404; font-size: 12px; line-height: 1.4;">You can view stored requests in the browser console.</div>
+                </div>
+              `;
+            }
+          } else {
+            if (results && document.body.contains(results)) {
+              results.innerHTML = `
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                  <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Server Error</div>
+                  <div style="color: #856404; font-size: 14px; line-height: 1.5;">${responseData.error || 'Unknown server error'}</div>
+                </div>
+              `;
+            }
           }
         }
       } catch (domError) {
@@ -757,6 +829,11 @@ function testWebhookURL() {
 
 // Make test function globally accessible
 window.testWebhookURL = testWebhookURL;
+
+// Make stored request functions globally accessible for debugging
+window.getStoredRequests = getStoredRequests;
+window.clearStoredRequests = clearStoredRequests;
+window.storeRequestLocally = storeRequestLocally;
 
 function showFloatingPopup(selection) {
   // Create floating popup element
@@ -1213,10 +1290,18 @@ function requestDefinition(query) {
       if (response.ok && responseData.success) {
         console.log("Request submitted successfully");
         showRequestSuccess(query);
-      } else {
-        console.error("Server returned error:", responseData.error);
-        showRequestError(`Server error: ${responseData.error || 'Unknown error'}`);
-      }
+        } else {
+          console.error("Server returned error:", responseData.error);
+          
+          // If it's an "Invalid page URL" error, try to store locally as fallback
+          if (responseData.error && responseData.error.includes("Invalid page URL")) {
+            console.log("Attempting to store request locally as fallback...");
+            storeRequestLocally(requestData);
+            showRequestError(`Webhook server rejected the page URL. Request has been stored locally for manual processing.`);
+          } else {
+            showRequestError(`Server error: ${responseData.error || 'Unknown error'}`);
+          }
+        }
     } catch (parseError) {
       console.error("Failed to parse response:", parseError);
       showRequestError("Failed to submit request. Please try again.");
