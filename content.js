@@ -918,6 +918,7 @@ function showDefinitionResult(title, definition, originalQuery) {
       // Skip metadata lines
       if (trimmedLine.match(/^Content on this page has been reviewed/i) ||
           trimmedLine.match(/^Reviewed by:/i) ||
+          trimmedLine.match(/^Reviewed !/i) ||
           trimmedLine.match(/^Last updated:/i) ||
           trimmedLine === '') {
         continue;
@@ -950,9 +951,10 @@ function showDefinitionResult(title, definition, originalQuery) {
         for (let j = i + 1; j < filteredLines.length; j++) {
           const nextLine = filteredLines[j];
           console.log(`Checking next line ${j}: "${nextLine}"`);
-          if (nextLine.length >= 20 && 
+          if (nextLine.length >= 15 && 
               !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
-              !nextLine.match(/^What is.*$/i)) {
+              !nextLine.match(/^What is.*$/i) &&
+              !nextLine.match(/^Reviewed/i)) {
             // Found the actual definition after the question/heading
             console.log(`Found definition line: "${nextLine}"`);
             const maxChars = 200;
