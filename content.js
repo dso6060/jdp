@@ -598,12 +598,18 @@ function requestDefinitionFromSidePanel(query) {
   console.log("Request data:", requestData);
   
   try {
+    // Use FormData to avoid CORS preflight request
+    const formData = new FormData();
+    formData.append('term', requestData.term);
+    formData.append('page_url', requestData.page_url);
+    formData.append('timestamp', requestData.timestamp);
+    if (requestData.access_key) {
+      formData.append('access_key', requestData.access_key);
+    }
+    
     const fetchPromise = fetch(WEBHOOK_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData)
+      body: formData
     });
     
     console.log("Fetch promise created, waiting for response...");
@@ -1162,12 +1168,18 @@ function requestDefinition(query) {
   console.log("Sending webhook request:", requestData);
   console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
   
+  // Use FormData to avoid CORS preflight request
+  const formData = new FormData();
+  formData.append('term', requestData.term);
+  formData.append('page_url', requestData.page_url);
+  formData.append('timestamp', requestData.timestamp);
+  if (requestData.access_key) {
+    formData.append('access_key', requestData.access_key);
+  }
+  
   fetch(WEBHOOK_ENDPOINT, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestData)
+    body: formData
   })
   .then(async (response) => {
     console.log("Response received:", response);
