@@ -637,7 +637,15 @@ function requestDefinitionFromSidePanel(query) {
             `;
           }
         } else {
-          throw new Error(responseData.error || `Server responded with status: ${response.status}`);
+          console.error("Server returned error:", responseData.error);
+          if (results && document.body.contains(results)) {
+            results.innerHTML = `
+              <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Server Error</div>
+                <div style="color: #856404; font-size: 14px; line-height: 1.5;">${responseData.error || 'Unknown server error'}</div>
+              </div>
+            `;
+          }
         }
       } catch (domError) {
         console.error("Could not update DOM after success (extension context may be invalidated):", domError.message);
@@ -1204,7 +1212,8 @@ function requestDefinition(query) {
         console.log("Request submitted successfully");
         showRequestSuccess(query);
       } else {
-        throw new Error(responseData.error || `Server responded with status: ${response.status}`);
+        console.error("Server returned error:", responseData.error);
+        showRequestError(`Server error: ${responseData.error || 'Unknown error'}`);
       }
     } catch (parseError) {
       console.error("Failed to parse response:", parseError);
