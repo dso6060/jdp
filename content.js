@@ -1174,16 +1174,31 @@ document.addEventListener("click", function(event) {
         try {
           if (response && response.isOpen) {
             // Side panel is open, send click outside message with window ID
-            chrome.windows.getCurrent((window) => {
-              try {
-                chrome.runtime.sendMessage({ 
-                  type: "CLICK_OUTSIDE_SIDE_PANEL", 
-                  windowId: window.id 
-                });
-              } catch (error) {
-                console.error("Error sending click outside message:", error.message);
-              }
-            });
+            // Check if chrome.windows is available before using it
+            if (chrome.windows && typeof chrome.windows.getCurrent === 'function') {
+              chrome.windows.getCurrent((window) => {
+                try {
+                  if (window && window.id) {
+                    chrome.runtime.sendMessage({ 
+                      type: "CLICK_OUTSIDE_SIDE_PANEL", 
+                      windowId: window.id 
+                    });
+                  } else {
+                    // Fallback: send message without window ID
+                    chrome.runtime.sendMessage({ 
+                      type: "CLICK_OUTSIDE_SIDE_PANEL" 
+                    });
+                  }
+                } catch (error) {
+                  console.error("Error sending click outside message:", error.message);
+                }
+              });
+            } else {
+              // Fallback: send message without window ID if chrome.windows is not available
+              chrome.runtime.sendMessage({ 
+                type: "CLICK_OUTSIDE_SIDE_PANEL" 
+              });
+            }
           }
         } catch (error) {
           console.error("Error in response handler:", error.message);

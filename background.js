@@ -28,16 +28,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sidePanelStatus.set(message.windowId, false);
     } else {
       // Find the current active window and close its side panel
-      chrome.windows.getCurrent((window) => {
-        console.log("Current window:", window);
-        if (window && sidePanelStatus.get(window.id)) {
-          console.log("Closing side panel for current window:", window.id);
-          chrome.sidePanel.close({ windowId: window.id });
-          sidePanelStatus.set(window.id, false);
+      try {
+        if (chrome.windows && typeof chrome.windows.getCurrent === 'function') {
+          chrome.windows.getCurrent((window) => {
+            try {
+              console.log("Current window:", window);
+              if (window && window.id && sidePanelStatus.get(window.id)) {
+                console.log("Closing side panel for current window:", window.id);
+                chrome.sidePanel.close({ windowId: window.id });
+                sidePanelStatus.set(window.id, false);
+              } else {
+                console.log("No side panel found for current window or window not found");
+              }
+            } catch (error) {
+              console.error("Error in getCurrent callback:", error.message);
+            }
+          });
         } else {
-          console.log("No side panel found for current window or window not found");
+          console.log("chrome.windows.getCurrent is not available");
         }
-      });
+      } catch (error) {
+        console.error("Error calling chrome.windows.getCurrent:", error.message);
+      }
     }
     sendResponse({ success: true });
   } else if (message.type === "CHECK_SIDE_PANEL_STATUS") {
