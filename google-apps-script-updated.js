@@ -3,7 +3,7 @@
 
 // Configuration - UPDATE THESE VALUES
 const CONFIG = {
-  SHEET_ID: '15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY', // Replace with your actual Google Sheet ID
+  SHEET_ID: '1H9xMQbnky7cDUaqlGVXeNwg5S9S57pxKE3MsyrhIyug', // Updated to correct Google Sheet ID
   // ACCESS_KEY is now handled by the secure server - no longer needed here
   RATE_LIMIT_ENABLED: true,
   MAX_REQUESTS_PER_HOUR: 1000
@@ -104,6 +104,15 @@ function doGet(e) {
       error: 'Internal server error: ' + error.toString()
     }, 500);
   }
+}
+
+// Handle OPTIONS requests (for CORS preflight)
+function doOptions(e) {
+  console.log('=== OPTIONS REQUEST (CORS PREFLIGHT) ===');
+  return createResponse({
+    success: true,
+    message: 'CORS preflight successful'
+  }, 200);
 }
 
 // Rate limiting function
@@ -271,7 +280,7 @@ function storeInSheet(data) {
   }
 }
 
-// Create HTTP response - UPDATED VERSION
+// Create HTTP response - UPDATED VERSION with CORS headers
 function createResponse(data, statusCode) {
   const response = {
     ...data,
@@ -284,7 +293,13 @@ function createResponse(data, statusCode) {
   
   return ContentService
     .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+      'Access-Control-Max-Age': '86400'
+    });
 }
 
 // Test function to verify the script works

@@ -1042,8 +1042,24 @@ function requestDefinition(query) {
     body: JSON.stringify(requestData)
   })
   .then(async (response) => {
+    console.log("Response received:", response);
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
+    
     try {
-      const responseData = await response.json();
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse JSON response:", parseError);
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
+      }
+      
+      console.log("Parsed response data:", responseData);
+      
       if (response.ok && responseData.success) {
         console.log("Request submitted successfully");
         showRequestSuccess(query);
@@ -1057,11 +1073,16 @@ function requestDefinition(query) {
   })
   .catch((error) => {
     console.error("Request failed:", error);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    
     // Check if it's a blocked request
     if (error.message && error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
       showRequestError("Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.");
+    } else if (error.message && error.message.includes('Failed to fetch')) {
+      showRequestError("Network error: Unable to connect to the webhook server. Please check your internet connection and try again.");
     } else {
-      showRequestError("Failed to submit request. Please try again.");
+      showRequestError(`Failed to submit request: ${error.message}`);
     }
   });
 }
