@@ -57,11 +57,28 @@ if (typeof CONFIG === 'undefined') {
   };
 }
 
-// Server endpoints (update these to your deployed server)
-const SERVER_BASE_URL = "https://your-server-domain.com";
-const WEBHOOK_ENDPOINT = `${SERVER_BASE_URL}/webhook`;
+// Server endpoints - will be configured from server config
+let SERVER_BASE_URL = null;
+let WEBHOOK_ENDPOINT = null;
+let webhookUrl = null;
 
-let webhookUrl = WEBHOOK_ENDPOINT;
+// Initialize webhook URL from configuration
+function initializeWebhookUrl() {
+  if (CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
+    WEBHOOK_ENDPOINT = CONFIG.WEBHOOK.ENDPOINT;
+    SERVER_BASE_URL = CONFIG.WEBHOOK.ENDPOINT.replace('/webhook', '');
+    webhookUrl = WEBHOOK_ENDPOINT;
+    console.log("Webhook URL initialized:", webhookUrl);
+  } else {
+    console.warn("Webhook endpoint not configured in CONFIG object");
+    webhookUrl = null;
+  }
+}
+
+// Initialize webhook URL when CONFIG is available
+if (CONFIG && CONFIG.WEBHOOK) {
+  initializeWebhookUrl();
+}
 
 // Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["webhookUrl"], (data) => {
@@ -197,6 +214,11 @@ function showNoResultUI(query) {
   if (btn && webhookUrl) {
     btn.classList.remove("hidden");
     btn.onclick = async function () {
+      if (!webhookUrl) {
+        document.getElementById("status").innerHTML = "Webhook not configured. Cannot submit request.";
+        return;
+      }
+      
       const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const pageUrl = activeTabs && activeTabs[0] ? activeTabs[0].url : "";
       const nowIso = new Date().toISOString();

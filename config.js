@@ -10,6 +10,7 @@ const DEFAULT_CONFIG = {
   WEBHOOK: {
     ENABLED: true,
     TIMEOUT: 10000,
+    ENDPOINT: `${WEBHOOK_SERVER_URL}/webhook`
   },
   
   // API Configuration
@@ -35,6 +36,9 @@ const DEFAULT_CONFIG = {
 
 // Server configuration URL (update this to your deployed server)
 const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec";
+
+// Webhook server URL (update this to your deployed server)
+const WEBHOOK_SERVER_URL = "https://your-webhook-server.com"; // Update this to your actual server URL
 
 // Rate limiting storage
 const rateLimitStore = {
@@ -95,7 +99,19 @@ async function fetchServerConfig() {
     
     const serverConfig = await response.json();
     console.log('Server configuration loaded successfully');
-    return { ...DEFAULT_CONFIG, ...serverConfig };
+    
+    // Add webhook endpoint to the configuration
+    const configWithWebhook = { 
+      ...DEFAULT_CONFIG, 
+      ...serverConfig,
+      WEBHOOK: {
+        ...DEFAULT_CONFIG.WEBHOOK,
+        ...serverConfig.WEBHOOK,
+        ENDPOINT: `${WEBHOOK_SERVER_URL}/webhook`
+      }
+    };
+    
+    return configWithWebhook;
   } catch (error) {
     console.warn('Failed to fetch server configuration, using defaults:', error.message);
     return DEFAULT_CONFIG;

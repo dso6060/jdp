@@ -53,9 +53,34 @@ let CONFIG = window.EXTENSION_CONFIG || {
   }
 };
 
-// Server endpoints (update these to your deployed server)
-const SERVER_BASE_URL = "https://your-server-domain.com";
-const WEBHOOK_ENDPOINT = `${SERVER_BASE_URL}/webhook`;
+// Server endpoints - will be configured from server config
+let SERVER_BASE_URL = null;
+let WEBHOOK_ENDPOINT = null;
+
+// Initialize webhook endpoint from configuration
+function initializeWebhookEndpoint() {
+  if (CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
+    WEBHOOK_ENDPOINT = CONFIG.WEBHOOK.ENDPOINT;
+    SERVER_BASE_URL = CONFIG.WEBHOOK.ENDPOINT.replace('/webhook', '');
+    console.log("Webhook endpoint initialized:", WEBHOOK_ENDPOINT);
+  } else {
+    console.warn("Webhook endpoint not configured in CONFIG object");
+    // Fallback: disable webhook functionality
+    WEBHOOK_ENDPOINT = null;
+    SERVER_BASE_URL = null;
+  }
+}
+
+// Initialize webhook endpoint when CONFIG is available
+if (CONFIG && CONFIG.WEBHOOK) {
+  initializeWebhookEndpoint();
+}
+
+// Re-initialize webhook endpoint when CONFIG is updated
+const originalConfig = window.EXTENSION_CONFIG;
+if (originalConfig && originalConfig.WEBHOOK) {
+  initializeWebhookEndpoint();
+}
 
 function handleRightClick(event) {
   const selection = window.getSelection();
@@ -379,6 +404,21 @@ function requestDefinitionFromSidePanel(query) {
     }
   } catch (error) {
     console.error("Extension context check failed:", error.message);
+    return;
+  }
+  
+  // Check if webhook endpoint is configured
+  if (!WEBHOOK_ENDPOINT) {
+    console.error("Webhook endpoint not configured - cannot submit request");
+    const results = document.getElementById('jdp-results');
+    if (results) {
+      results.innerHTML = `
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+          <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Webhook Not Configured</div>
+          <div style="color: #856404; font-size: 14px; line-height: 1.5;">Request submission is not available. The webhook endpoint needs to be configured.</div>
+        </div>
+      `;
+    }
     return;
   }
   
@@ -933,6 +973,26 @@ function requestDefinition(query) {
   
   if (!document.body.contains(floatingPopup)) {
     console.error("requestDefinition: floatingPopup is not in DOM");
+    return;
+  }
+  
+  // Check if webhook endpoint is configured
+  if (!WEBHOOK_ENDPOINT) {
+    console.error("Webhook endpoint not configured - cannot submit request");
+    floatingPopup.innerHTML = `
+      <div style="color: #856404; margin-bottom: 8px;">
+        <strong>⚠ Webhook Not Configured</strong>
+      </div>
+      <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+        Request submission is not available. The webhook endpoint needs to be configured.
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+        <button onclick="this.parentElement.parentElement.remove()" 
+                style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
+          ✕ Close
+        </button>
+      </div>
+    `;
     return;
   }
   
