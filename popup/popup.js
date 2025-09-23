@@ -95,108 +95,6 @@ let definitionText,
   term,
   sourceUrl;
 
-// Function to filter out non-English content from definitions
-function filterEnglishContent(text) {
-  if (!text || typeof text !== 'string') {
-    return text;
-  }
-  
-  // Split text into lines for processing
-  const lines = text.split('\n');
-  const englishLines = [];
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    // Skip empty lines
-    if (!trimmedLine) {
-      continue;
-    }
-    
-    // Check if line contains non-English characters (excluding common punctuation)
-    // This regex matches lines that contain characters from non-Latin scripts
-    const nonEnglishPattern = /[\u0080-\uFFFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2C60-\u2C7F\uA720-\uA7FF\uAB30-\uAB6F\uFB00-\uFB4F]/;
-    
-    // Skip lines with non-English characters
-    if (nonEnglishPattern.test(trimmedLine)) {
-      console.log(`Filtering out non-English line: "${trimmedLine}"`);
-      continue;
-    }
-    
-    // Additional check for common non-English language indicators
-    const nonEnglishIndicators = [
-      /हिंदी में देखने के लिए क्लिक करें/i, // Hindi
-      /click to view in hindi/i,
-      /ver en español/i, // Spanish
-      /voir en français/i, // French
-      /auf deutsch/i, // German
-      /中文/i, // Chinese
-      /日本語/i, // Japanese
-      /한국어/i, // Korean
-      /русский/i, // Russian
-      /العربية/i, // Arabic
-      /עברית/i, // Hebrew
-      /ελληνικά/i, // Greek
-      /português/i, // Portuguese
-      /italiano/i, // Italian
-      /nederlands/i, // Dutch
-      /svenska/i, // Swedish
-      /norsk/i, // Norwegian
-      /dansk/i, // Danish
-      /suomi/i, // Finnish
-      /polski/i, // Polish
-      /čeština/i, // Czech
-      /magyar/i, // Hungarian
-      /română/i, // Romanian
-      /български/i, // Bulgarian
-      /hrvatski/i, // Croatian
-      /slovenščina/i, // Slovenian
-      /slovenský/i, // Slovak
-      /eesti/i, // Estonian
-      /latviešu/i, // Latvian
-      /lietuvių/i, // Lithuanian
-      /türkçe/i, // Turkish
-      /فارسی/i, // Persian
-      /اردو/i, // Urdu
-      /বাংলা/i, // Bengali
-      /தமிழ்/i, // Tamil
-      /తెలుగు/i, // Telugu
-      /मराठी/i, // Marathi
-      /ગુજરાતી/i, // Gujarati
-      /ಕನ್ನಡ/i, // Kannada
-      /മലയാളം/i, // Malayalam
-      /ଓଡ଼ିଆ/i, // Odia
-      /ਪੰਜਾਬੀ/i, // Punjabi
-      /অসমীয়া/i, // Assamese
-      /नेपाली/i, // Nepali
-      /සිංහල/i, // Sinhala
-      /မြန်မာ/i, // Burmese
-      /ខ្មែរ/i, // Khmer
-      /ລາວ/i, // Lao
-      /ไทย/i, // Thai
-      /tiếng việt/i, // Vietnamese
-      /bahasa indonesia/i, // Indonesian
-      /bahasa melayu/i, // Malay
-      /filipino/i, // Filipino
-      /tagalog/i, // Tagalog
-    ];
-    
-    let isNonEnglish = false;
-    for (const pattern of nonEnglishIndicators) {
-      if (pattern.test(trimmedLine)) {
-        console.log(`Filtering out non-English indicator line: "${trimmedLine}"`);
-        isNonEnglish = true;
-        break;
-      }
-    }
-    
-    if (!isNonEnglish) {
-      englishLines.push(trimmedLine);
-    }
-  }
-  
-  return englishLines.join('\n').trim();
-}
 
 // function to fetch and show definition on the popup from Justice Definitions Project
 async function searchJDPWiki(query) {
@@ -241,9 +139,7 @@ async function searchJDPWiki(query) {
 
       term = title;
       sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
-      
-      // Filter out non-English content
-      definitionText = filterEnglishContent(extractText);
+      definitionText = extractText;
 
       setValuesFromJDP();
     } else {

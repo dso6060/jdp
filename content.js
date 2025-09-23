@@ -456,15 +456,12 @@ function performSidePanelSearch(query) {
           // Clean up the snippet
           const tmp = document.createElement("div");
           tmp.innerHTML = snippet;
-          let cleanSnippet = (tmp.textContent || tmp.innerText || "")
+          const cleanSnippet = (tmp.textContent || tmp.innerText || "")
             .replace(/\[\[[^\]]+\]\]/g, "")
             .replace(/\{\{[^}]+\}\}/g, "")
             .replace(/==+[^=]*==+/g, "")
             .replace(/\s+/g, " ")
             .trim();
-          
-          // Filter out non-English content
-          cleanSnippet = filterEnglishContent(cleanSnippet);
           
           const sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
           
