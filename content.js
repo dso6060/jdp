@@ -676,9 +676,25 @@ function showDefinitionResult(title, definition, originalQuery) {
     return;
   }
   
+  // Additional context validation before DOM manipulation
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated during DOM manipulation");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed during DOM manipulation:", error.message);
+    return;
+  }
+  
   // Ensure popup width adjusts to content
-  floatingPopup.style.width = 'auto';
-  floatingPopup.style.maxWidth = '400px';
+  try {
+    floatingPopup.style.width = 'auto';
+    floatingPopup.style.maxWidth = '400px';
+  } catch (error) {
+    console.error("Error setting popup styles:", error.message);
+    return;
+  }
   
   // Handle empty or very short definitions
   let displayText = "";
@@ -854,7 +870,19 @@ function showNoResult(query) {
     return;
   }
   
-  floatingPopup.innerHTML = `
+  // Additional context validation before DOM manipulation
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      console.error("Extension context invalidated during no result display");
+      return;
+    }
+  } catch (error) {
+    console.error("Extension context check failed during no result display:", error.message);
+    return;
+  }
+  
+  try {
+    floatingPopup.innerHTML = `
     <div style="margin-bottom: 8px;">
       <strong>No definition found</strong>
     </div>
@@ -872,13 +900,21 @@ function showNoResult(query) {
       </button>
     </div>
   `;
+  } catch (error) {
+    console.error("Error setting no result innerHTML:", error.message);
+    return;
+  }
   
   // Add click handler for request button
-  const requestBtn = floatingPopup.querySelector('#requestBtn');
-  if (requestBtn) {
-    requestBtn.onclick = function() {
-      requestDefinition(query);
-    };
+  try {
+    const requestBtn = floatingPopup.querySelector('#requestBtn');
+    if (requestBtn) {
+      requestBtn.onclick = function() {
+        requestDefinition(query);
+      };
+    }
+  } catch (error) {
+    console.error("Error setting up request button:", error.message);
   }
 }
 
