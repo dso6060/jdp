@@ -291,30 +291,15 @@ function createResponse(data, statusCode) {
   console.log('=== SENDING RESPONSE ===');
   console.log('Response:', response);
   
-  // Google Apps Script doesn't support setHeaders, so we'll use a different approach
-  const output = ContentService
+  return ContentService
     .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON);
-  
-  return output;
-}
-
-// Simple test function to verify the webhook is working
-function testWebhookSimple() {
-  console.log('=== SIMPLE WEBHOOK TEST ===');
-  
-  const testData = {
-    term: 'test term from simple test',
-    page_url: 'https://example.com/test',
-    timestamp: new Date().toISOString(),
-    source: 'simple_test'
-  };
-  
-  console.log('Testing webhook with data:', testData);
-  
-  const result = storeInSheet(testData);
-  console.log('Test result:', result);
-  return result;
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+      'Access-Control-Max-Age': '86400'
+    });
 }
 
 // Test function to verify the script works

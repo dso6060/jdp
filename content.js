@@ -40,7 +40,7 @@ let CONFIG = window.EXTENSION_CONFIG || {
   WEBHOOK: {
     ENABLED: true,
     TIMEOUT: 10000,
-    ENDPOINT: "https://script.google.com/macros/s/AKfycby36mgl3B4r-BXXqLNO33yte0GlSM8dROEYYheTn-F7XGWfsfepu7V2kH49eLdA2Ykn/exec"
+    ENDPOINT: "https://script.google.com/macros/s/AKfycbxbRXi0gmOA_wZOmNnlM4GfUy7T2sVlc7-htGcqgjQO_QNQ00DwyHZt6YFkqqCHpnZp/exec"
     // Access key is now server-side only
   },
   API: {

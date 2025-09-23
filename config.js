@@ -35,10 +35,10 @@ const DEFAULT_CONFIG = {
 };
 
 // Server configuration URL (update this to your deployed server)
-const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycby36mgl3B4r-BXXqLNO33yte0GlSM8dROEYYheTn-F7XGWfsfepu7V2kH49eLdA2Ykn/exec";
+const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycbxbRXi0gmOA_wZOmNnlM4GfUy7T2sVlc7-htGcqgjQO_QNQ00DwyHZt6YFkqqCHpnZp/exec";
 
 // Webhook server URL (update this to your deployed server)
-const WEBHOOK_SERVER_URL = "https://script.google.com/macros/s/AKfycby36mgl3B4r-BXXqLNO33yte0GlSM8dROEYYheTn-F7XGWfsfepu7V2kH49eLdA2Ykn/exec"; // Using Google Apps Script as fallback
+const WEBHOOK_SERVER_URL = "https://script.google.com/macros/s/AKfycbxbRXi0gmOA_wZOmNnlM4GfUy7T2sVlc7-htGcqgjQO_QNQ00DwyHZt6YFkqqCHpnZp/exec"; // Using Google Apps Script as fallback
 
 // Rate limiting storage
 const rateLimitStore = {
