@@ -43,7 +43,8 @@ if (typeof CONFIG === 'undefined') {
   window.CONFIG = {
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
-      ENABLED: true
+      ENABLED: true,
+      ENDPOINT: "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec"
     },
     API: {
       TIMEOUT: 15000
@@ -79,6 +80,9 @@ function initializeWebhookUrl() {
 if (CONFIG && CONFIG.WEBHOOK) {
   initializeWebhookUrl();
 }
+
+// Force initialization with current CONFIG
+initializeWebhookUrl();
 
 // Still allow custom webhook override from storage
 chrome.storage && chrome.storage.sync.get(["webhookUrl"], (data) => {

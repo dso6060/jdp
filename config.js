@@ -38,7 +38,7 @@ const DEFAULT_CONFIG = {
 const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec";
 
 // Webhook server URL (update this to your deployed server)
-const WEBHOOK_SERVER_URL = "https://your-webhook-server.com"; // Update this to your actual server URL
+const WEBHOOK_SERVER_URL = "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec"; // Using Google Apps Script as fallback
 
 // Rate limiting storage
 const rateLimitStore = {

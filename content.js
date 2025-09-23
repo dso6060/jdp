@@ -39,7 +39,8 @@ let CONFIG = window.EXTENSION_CONFIG || {
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
   WEBHOOK: {
     ENABLED: true,
-    TIMEOUT: 10000
+    TIMEOUT: 10000,
+    ENDPOINT: "https://script.google.com/macros/s/AKfycbyVbK2G1wn_WlC6T5gWO6sab2QeNxMfI5aF8Uluin2vBr91-Su3_1j_KEg14pxw-xUl/exec"
     // Access key is now server-side only
   },
   API: {
@@ -81,6 +82,15 @@ const originalConfig = window.EXTENSION_CONFIG;
 if (originalConfig && originalConfig.WEBHOOK) {
   initializeWebhookEndpoint();
 }
+
+// Also try to initialize from the global CONFIG if available
+if (typeof window.CONFIG !== 'undefined' && window.CONFIG.WEBHOOK) {
+  CONFIG = window.CONFIG;
+  initializeWebhookEndpoint();
+}
+
+// Force initialization with current CONFIG
+initializeWebhookEndpoint();
 
 function handleRightClick(event) {
   const selection = window.getSelection();
