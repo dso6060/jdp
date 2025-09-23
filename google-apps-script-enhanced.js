@@ -431,7 +431,7 @@ function storeInSheet(data) {
   }
 }
 
-// Create HTTP response with CORS headers
+// Create HTTP response - FIXED VERSION without setHeaders
 function createResponse(data, statusCode) {
   const response = {
     ...data,
@@ -442,15 +442,10 @@ function createResponse(data, statusCode) {
   console.log('=== SENDING RESPONSE ===');
   console.log('Response:', response);
   
+  // Google Apps Script doesn't support setHeaders, so we return the response directly
   return ContentService
     .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-Access-Key',
-      'Access-Control-Max-Age': '86400'
-    });
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // Test function to verify the script works

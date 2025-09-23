@@ -44,7 +44,7 @@ if (typeof CONFIG === 'undefined') {
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
     WEBHOOK: {
       ENABLED: true,
-      ENDPOINT: "https://script.google.com/macros/s/AKfycbxbRXi0gmOA_wZOmNnlM4GfUy7T2sVlc7-htGcqgjQO_QNQ00DwyHZt6YFkqqCHpnZp/exec"
+      ENDPOINT: "https://script.google.com/macros/s/AKfycbww5tVqf12kw9pb9i1ygDB61SYVtMay-bgpqKKJJHZLH_FL6npP0TZfk7O9YpI5rN7S/exec"
     },
     API: {
       TIMEOUT: 15000
