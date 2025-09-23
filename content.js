@@ -715,7 +715,9 @@ function showDefinitionResult(title, definition, originalQuery) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
     // More direct approach: split into lines and filter out metadata lines
+    console.log("Processing definition content:", definition);
     const lines = definition.split('\n');
+    console.log("Split into lines:", lines);
     const filteredLines = [];
     
     for (const line of lines) {
@@ -734,34 +736,44 @@ function showDefinitionResult(title, definition, originalQuery) {
     
     const cleanDefinition = filteredLines.join('\n').trim();
     
+    console.log("Filtered lines:", filteredLines);
+    
     // Now find the first substantial content line
     for (let i = 0; i < filteredLines.length; i++) {
       const line = filteredLines[i];
+      console.log(`Processing line ${i}: "${line}"`);
       
       // Skip only obvious headers and very short lines
       if (line.length < 10 || 
           line.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) ||
           (line.match(/^[A-Z][a-z]+$/) && line.length < 20)) {
+        console.log(`Skipping short/header line: "${line}"`);
         continue;
       }
       
-      // Universal pattern: Skip any "What is..." question and look for the actual answer
-      if (line.match(/^What is.*\?$/i)) {
-        // Look for the next substantial line after the question
+      // Universal pattern: Skip any "What is..." question/heading and look for the actual answer
+      if (line.match(/^What is.*$/i)) {
+        console.log(`Found "What is..." line: "${line}", looking for next substantial line`);
+        // Look for the next substantial line after the question/heading
         for (let j = i + 1; j < filteredLines.length; j++) {
           const nextLine = filteredLines[j];
+          console.log(`Checking next line ${j}: "${nextLine}"`);
           if (nextLine.length >= 20 && 
               !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
-              !nextLine.match(/^What is.*\?$/i)) {
-            // Found the actual definition after the question
+              !nextLine.match(/^What is.*$/i)) {
+            // Found the actual definition after the question/heading
+            console.log(`Found definition line: "${nextLine}"`);
             const maxChars = 200;
             displayText = nextLine.length > maxChars ? 
               nextLine.substring(0, maxChars) + "..." : nextLine;
             break;
           }
         }
-        if (displayText) break; // Found definition after question
-        continue; // Skip the question line itself
+        if (displayText) {
+          console.log(`Using definition: "${displayText}"`);
+          break; // Found definition after question
+        }
+        continue; // Skip the question/heading line itself
       }
       
       // Found a substantial line - use it
