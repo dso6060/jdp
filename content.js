@@ -7,6 +7,33 @@ var selectedText;
 var floatingPopup = null;
 var sidePanelOverlay = null;
 
+// Global function to check if extension context is still valid
+function isExtensionContextValid() {
+  try {
+    return typeof chrome !== 'undefined' && 
+           chrome.runtime && 
+           chrome.runtime.id && 
+           document && 
+           document.body;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Global function to safely execute code only if context is valid
+function safeExecute(fn, errorMessage = "Extension context invalidated") {
+  if (!isExtensionContextValid()) {
+    console.error(errorMessage);
+    return false;
+  }
+  try {
+    return fn();
+  } catch (error) {
+    console.error("Error in safe execution:", error.message);
+    return false;
+  }
+}
+
 // Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
 let CONFIG = window.EXTENSION_CONFIG || {
   API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
@@ -656,13 +683,8 @@ function lookupDefinition(query) {
 
 function showDefinitionResult(title, definition, originalQuery) {
   // Check if extension context is still valid
-  try {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
-      console.error("Extension context invalidated - cannot proceed with definition display");
-      return;
-    }
-  } catch (error) {
-    console.error("Extension context check failed:", error.message);
+  if (!isExtensionContextValid()) {
+    console.error("Extension context invalidated - cannot proceed with definition display");
     return;
   }
   
@@ -673,17 +695,6 @@ function showDefinitionResult(title, definition, originalQuery) {
   
   if (!document.body.contains(floatingPopup)) {
     console.error("showDefinitionResult: floatingPopup is not in DOM");
-    return;
-  }
-  
-  // Additional context validation before DOM manipulation
-  try {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
-      console.error("Extension context invalidated during DOM manipulation");
-      return;
-    }
-  } catch (error) {
-    console.error("Extension context check failed during DOM manipulation:", error.message);
     return;
   }
   
@@ -850,13 +861,8 @@ function showDefinitionResult(title, definition, originalQuery) {
 
 function showNoResult(query) {
   // Check if extension context is still valid
-  try {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
-      console.error("Extension context invalidated - cannot proceed with no result display");
-      return;
-    }
-  } catch (error) {
-    console.error("Extension context check failed:", error.message);
+  if (!isExtensionContextValid()) {
+    console.error("Extension context invalidated - cannot proceed with no result display");
     return;
   }
   
@@ -867,17 +873,6 @@ function showNoResult(query) {
   
   if (!document.body.contains(floatingPopup)) {
     console.error("showNoResult: floatingPopup is not in DOM");
-    return;
-  }
-  
-  // Additional context validation before DOM manipulation
-  try {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
-      console.error("Extension context invalidated during no result display");
-      return;
-    }
-  } catch (error) {
-    console.error("Extension context check failed during no result display:", error.message);
     return;
   }
   
@@ -1149,13 +1144,8 @@ function createErrorPopup(message) {
 
 function showError(message) {
   // Check if extension context is still valid
-  try {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
-      console.error("Extension context invalidated - cannot proceed with error display");
-      return;
-    }
-  } catch (error) {
-    console.error("Extension context check failed:", error.message);
+  if (!isExtensionContextValid()) {
+    console.error("Extension context invalidated - cannot proceed with error display");
     return;
   }
   
