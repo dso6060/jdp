@@ -216,25 +216,24 @@ function validateRequest(requestData, requestObject) {
       }
     }
     
-    // FIXED: More lenient URL validation
+    // FIXED: Very lenient URL validation - only reject obviously invalid URLs
     if (requestData.page_url) {
       if (typeof requestData.page_url !== 'string') {
         return { valid: false, error: 'Page URL must be a string' };
       }
       
-      try {
-        const url = new URL(requestData.page_url);
-        // Only check if it's a valid URL format, don't be too strict
-        if (!url.protocol || (!url.protocol.startsWith('http'))) {
-          return { valid: false, error: 'Invalid page URL protocol' };
-        }
-      } catch (urlError) {
-        console.log('URL validation error:', urlError);
-        // Be more lenient - only reject obviously invalid URLs
-        if (!requestData.page_url.includes('http') && !requestData.page_url.includes('www.')) {
-          return { valid: false, error: 'Invalid page URL format' };
-        }
+      // Very basic validation - just check if it looks like a URL
+      const url = requestData.page_url.trim();
+      if (url.length < 5) {
+        return { valid: false, error: 'Page URL too short' };
       }
+      
+      // Only reject if it's clearly not a URL
+      if (!url.includes('.') && !url.includes('://')) {
+        return { valid: false, error: 'Page URL format invalid' };
+      }
+      
+      console.log('URL validation passed for:', url);
     }
     
     console.log('Validation passed');
@@ -749,4 +748,71 @@ function updateSecurityConfig() {
       maxPerMinute: CONFIG.MAX_REQUESTS_PER_MINUTE
     }
   };
+}
+
+// Test function to validate URLs
+function testUrlValidation() {
+  console.log('=== TESTING URL VALIDATION ===');
+  
+  const testUrls = [
+    'https://www.forbes.com/sites/ronakdesai/2025/09/22/chinas-impersonation-hack-strikes-at-the-heart-of-how-washington-works/',
+    'https://example.com',
+    'http://test.com',
+    'www.google.com',
+    'invalid-url',
+    'https://www.google.com',
+    'https://docs.google.com/spreadsheets/d/1H9xMQbnky7cDUaqlGVXeNwg5S9S57pxKE3MsyrhIyug/edit'
+  ];
+  
+  testUrls.forEach(url => {
+    const testData = {
+      term: 'test',
+      page_url: url,
+      timestamp: new Date().toISOString()
+    };
+    
+    const result = validateRequest(testData, {});
+    console.log(`URL: ${url}`);
+    console.log(`Valid: ${result.valid}`);
+    if (!result.valid) {
+      console.log(`Error: ${result.error}`);
+    }
+    console.log('---');
+  });
+  
+  return { message: 'URL validation test completed' };
+}
+
+// Test function to simulate a real request
+function testRealRequest() {
+  console.log('=== TESTING REAL REQUEST SIMULATION ===');
+  
+  const testData = {
+    term: 'cyber espionage',
+    page_url: 'https://www.forbes.com/sites/ronakdesai/2025/09/22/chinas-impersonation-hack-strikes-at-the-heart-of-how-washington-works/',
+    timestamp: '2025-09-25T03:03:23.394Z',
+    received_at: new Date().toISOString(),
+    source: 'enhanced_webhook'
+  };
+  
+  console.log('Test data:', testData);
+  
+  // Test validation
+  const validationResult = validateRequest(testData, {});
+  console.log('Validation result:', validationResult);
+  
+  if (validationResult.valid) {
+    // Test rate limiting
+    const rateLimitResult = checkRateLimit(testData);
+    console.log('Rate limit result:', rateLimitResult);
+    
+    if (rateLimitResult.allowed) {
+      // Test storage
+      const storageResult = storeInSheet(testData);
+      console.log('Storage result:', storageResult);
+      return storageResult;
+    }
+  }
+  
+  return { success: false, error: 'Validation or rate limiting failed' };
 }
