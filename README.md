@@ -244,14 +244,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Google Apps Script for the backend infrastructure
 - The open-source community for inspiration and tools
 
-## Version History
-
-- **v1.0.0-open-source**: Initial open-source release
-  - Sanitized all secrets and credentials
-  - Added comprehensive documentation
-  - Made configuration fully customizable
-  - Added geographic logging and rate limiting
-
 ---
 
 **Note**: This is an open-source version of the Justice Definitions Project browser extension. Replace all placeholder values with your own credentials before use. Never commit secrets to public repositories.
