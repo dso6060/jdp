@@ -1,8 +1,14 @@
 // Background script for Justice Definitions Project Extension
-// Handles side panel opening and extension icon clicks
+// Handles side panel opening, extension icon clicks, and webhook requests
 
 // Track side panel status
 let sidePanelStatus = new Map(); // windowId -> isOpen
+
+// Webhook configuration
+const WEBHOOK_CONFIG = {
+  ENDPOINT: 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook',
+  ACCESS_KEY: 'daksh_jdc_2025_October'
+};
 
 // Listen for extension icon clicks
 chrome.action.onClicked.addListener((tab) => {
@@ -66,9 +72,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === "CLICK_OUTSIDE_SIDE_PANEL") {
     // Close side panel when clicked outside
     const windowId = message.windowId || sender.tab?.windowId;
-    if (windowId && sidePanelStatus.get(windowId)) {
-      chrome.sidePanel.close({ windowId: windowId });
-      sidePanelStatus.set(windowId, false);
+    if (windowId && sidePanelStatus.get(windowId) && chrome.sidePanel) {
+      try {
+        chrome.sidePanel.close({ windowId: windowId });
+        sidePanelStatus.set(windowId, false);
+      } catch (error) {
+        console.error('Error closing side panel:', error);
+      }
     }
     sendResponse({ success: true });
   } else if (message.type === "SIDE_PANEL_CLOSED") {
@@ -79,6 +89,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sidePanelStatus.set(windowId, false);
     }
     sendResponse({ success: true });
+  } else if (message.type === "SEND_WEBHOOK_REQUEST") {
+    // Handle webhook requests from content script
+    console.log("Background script received webhook request:", message.data);
+    handleWebhookRequest(message.data, sendResponse);
+    return true; // Keep message channel open for async response
   }
   
   return true; // Keep message channel open
@@ -118,3 +133,79 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
     sidePanelStatus.clear();
   }
 });
+
+// Handle webhook requests from content script (CORS-free approach)
+async function handleWebhookRequest(requestData, sendResponse) {
+  try {
+    console.log("Background script handling webhook request:", requestData);
+    
+    // Get client IP using a web service
+    let clientIP = 'unknown';
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      if (ipResponse.ok) {
+        const ipData = await ipResponse.json();
+        clientIP = ipData.ip || 'unknown';
+        console.log('Client IP detected:', clientIP);
+      }
+    } catch (ipError) {
+      console.log('Failed to get client IP:', ipError.message);
+    }
+    
+    // Prepare the request data with additional metadata
+    const webhookData = {
+      term: requestData.term,
+      page_url: requestData.page_url,
+      timestamp: requestData.timestamp || new Date().toISOString(),
+      access_key: WEBHOOK_CONFIG.ACCESS_KEY,
+      source: 'extension_background_script',
+      user_agent: navigator.userAgent,
+      referrer: requestData.page_url,
+      client_ip: clientIP
+    };
+    
+    console.log("Sending webhook request to:", WEBHOOK_CONFIG.ENDPOINT);
+    console.log("Webhook data:", webhookData);
+    
+    // Use fetch in background script (no CORS restrictions)
+    const response = await fetch(WEBHOOK_CONFIG.ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Justice-Definitions-Extension/1.0',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(webhookData)
+    });
+    
+    console.log("Webhook response status:", response.status);
+    console.log("Webhook response ok:", response.ok);
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Webhook success:", result);
+      sendResponse({
+        success: true,
+        data: result,
+        message: 'Term successfully added to Definition Requests queue'
+      });
+    } else {
+      const errorText = await response.text();
+      console.error("Webhook error:", response.status, errorText);
+      sendResponse({
+        success: false,
+        error: `Server error: ${response.status}`,
+        details: errorText
+      });
+    }
+    
+  } catch (error) {
+    console.error("Background script webhook error:", error);
+    sendResponse({
+      success: false,
+      error: 'Network error: ' + error.message,
+      details: error.toString()
+    });
+  }
+}

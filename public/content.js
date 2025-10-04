@@ -212,29 +212,115 @@ function filterEnglishContent(text) {
   return englishLines.join('\n').trim();
 }
 
-// Load configuration - use window.EXTENSION_CONFIG to avoid conflicts
-let CONFIG = window.EXTENSION_CONFIG || {
-  API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
-  WEBHOOK: {
-    ENABLED: true,
-    TIMEOUT: 10000,
-    ENDPOINT: "https://script.google.com/macros/s/AKfycbxGFWi9vIqBin1MdJwEr1N2iwqdaYRpG_i6WqKp8aB3RUxgpsx7As2svt25JPUxkbGU/exec"
-    // Access key is now server-side only
-  },
-  API: {
-    TIMEOUT: 15000
-  },
-  DISPLAY: {
-    MAX_CHARS: 140,
-    EXTENDED_CHARS: 200,
-    MAX_EXTENDED_CHARS: 250,
-    MIN_WORD_COUNT: 4
+// Load configuration - wait for config.js to load
+let CONFIG = null;
+let configLoaded = false;
+
+// Initialize CONFIG immediately with fallback
+function initializeConfig() {
+  if (window.EXTENSION_CONFIG) {
+    CONFIG = window.EXTENSION_CONFIG;
+    configLoaded = true;
+    console.log('Extension config loaded immediately');
+    return true;
   }
-};
+  
+  // Set fallback config immediately
+  CONFIG = {
+    WEBHOOK: {
+      ENABLED: true,
+      ENDPOINT: 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook'
+    },
+    API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php"
+  };
+  configLoaded = true;
+  console.log('Using fallback config');
+  return false;
+}
 
 // Server endpoints - will be configured from server config
 let SERVER_BASE_URL = null;
 let WEBHOOK_ENDPOINT = null;
+
+// Alternative initialization approach - use a single initialization function
+function initializeExtension() {
+  try {
+    // Initialize config first
+    initializeConfig();
+    
+    // Initialize webhook endpoint with fallback
+    initializeWebhookEndpointImmediate();
+    
+    console.log("Extension initialized successfully");
+  } catch (error) {
+    console.error("Extension initialization failed:", error);
+    // Set fallback values
+    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
+    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec';
+  }
+}
+
+// Initialize extension
+initializeExtension();
+
+// Function to wait for config to be available
+function waitForConfig() {
+  return new Promise((resolve) => {
+    if (window.EXTENSION_CONFIG) {
+      CONFIG = window.EXTENSION_CONFIG;
+      configLoaded = true;
+      console.log('Extension config loaded successfully');
+      resolve(CONFIG);
+      return;
+    }
+    
+    // Wait for config to be available
+    const checkConfig = () => {
+      if (window.EXTENSION_CONFIG) {
+        CONFIG = window.EXTENSION_CONFIG;
+        configLoaded = true;
+        console.log('Extension config loaded successfully');
+        resolve(CONFIG);
+      } else {
+        setTimeout(checkConfig, 100);
+      }
+    };
+    
+    checkConfig();
+  });
+}
+
+// Try to load updated config asynchronously
+waitForConfig().then(config => {
+  console.log('Config updated from server, re-initializing webhook endpoint');
+  initializeWebhookEndpoint();
+}).catch(error => {
+  console.log('Server config not available, using fallback config');
+});
+
+// Initialize webhook endpoint immediately with fallback
+function initializeWebhookEndpointImmediate() {
+  if (CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
+    WEBHOOK_ENDPOINT = CONFIG.WEBHOOK.ENDPOINT;
+    SERVER_BASE_URL = CONFIG.WEBHOOK.ENDPOINT.replace('/webhook', '');
+    console.log("Webhook endpoint initialized immediately:", WEBHOOK_ENDPOINT);
+  } else {
+    // Set fallback webhook endpoint immediately
+    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
+    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec';
+    console.log("Using fallback webhook endpoint:", WEBHOOK_ENDPOINT);
+  }
+}
+
+// Function to get webhook endpoint, waiting for config if needed
+function getWebhookEndpoint() {
+  if (configLoaded && CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
+    return CONFIG.WEBHOOK.ENDPOINT;
+  }
+  
+  // Fallback endpoint
+  return 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
+}
 
 // Initialize webhook endpoint from configuration
 function initializeWebhookEndpoint() {
@@ -251,9 +337,18 @@ function initializeWebhookEndpoint() {
 }
 
 // Initialize webhook endpoint when CONFIG is available
-if (CONFIG && CONFIG.WEBHOOK) {
+// This will be called after CONFIG is loaded
+function initializeWhenConfigReady() {
+  if (configLoaded && CONFIG) {
   initializeWebhookEndpoint();
+  } else {
+    // Wait a bit more for config to load
+    setTimeout(initializeWhenConfigReady, 100);
+  }
 }
+
+// Start initialization process
+initializeWhenConfigReady();
 
 // Re-initialize webhook endpoint when CONFIG is updated
 const originalConfig = window.EXTENSION_CONFIG;
@@ -443,9 +538,9 @@ function setupSidePanelEvents() {
     });
   }
   
-  // Click outside to close
+  // Click outside to close - but only if not during a request
   document.addEventListener('click', (e) => {
-    if (sidePanelOverlay && !sidePanelOverlay.contains(e.target)) {
+    if (sidePanelOverlay && !sidePanelOverlay.contains(e.target) && window.currentRequestContext !== 'sidepanel') {
       closeSidePanelOverlay();
     }
   });
@@ -493,11 +588,23 @@ function performSidePanelSearch(query) {
   
   // Perform actual lookup using the Justice Definitions Project API
   const cleanQuery = query.replace(/[^a-zA-Z ]/g, "");
-  const api = CONFIG.API_URL || "https://jdc-definitions.wikibase.wiki/w/api.php";
+  
+  // Get API URL safely
+  let apiUrl;
+  if (CONFIG && CONFIG.API_URL) {
+    apiUrl = CONFIG.API_URL;
+  } else {
+    apiUrl = "https://jdc-definitions.wikibase.wiki/w/api.php";
+    console.log("Using fallback API URL:", apiUrl);
+  }
+  
   const searchParams = "action=query&list=search&srprop=snippet&format=json&origin=*" + 
     `&srsearch=${encodeURIComponent(cleanQuery)}`;
   
-  fetch(`${api}?${searchParams}`)
+  console.log("Performing side panel search for:", cleanQuery);
+  console.log("Using API URL:", apiUrl);
+  
+  fetch(`${apiUrl}?${searchParams}`)
     .then(response => response.json())
     .then(data => {
       if (data && data.query && data.query.search && data.query.search.length > 0) {
@@ -573,10 +680,20 @@ function performSidePanelSearch(query) {
     })
     .catch(error => {
       console.error("Search failed:", error);
+      console.error("Error details:", error.message);
+      console.error("CONFIG object:", CONFIG);
+      
       results.innerHTML = `
         <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
           <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Search Error</div>
-          <div style="color: #856404; font-size: 14px; line-height: 1.5;">Failed to search for "${query}". Please try again.</div>
+          <div style="color: #856404; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Failed to search for "${query}". Please try again.</div>
+          <div style="color: #856404; font-size: 12px; line-height: 1.4;">Error: ${error.message}</div>
+          <div style="margin-top: 12px;">
+            <button onclick="performSidePanelSearch('${query}')" 
+                    style="background: #ffc107; color: #856404; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              Try Again
+            </button>
+          </div>
         </div>
       `;
     });
@@ -584,189 +701,124 @@ function performSidePanelSearch(query) {
 
 // Request definition from side panel
 function requestDefinitionFromSidePanel(query) {
-  // Check if extension context is still valid
   try {
+    // Set context to side panel
+    window.currentRequestContext = 'sidepanel';
+    
+    // Check if extension context is still valid
     if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
       console.error("Extension context invalidated - cannot proceed with webhook request");
+      updateSidePanelWithError(query, "Extension context invalidated");
       return;
     }
-  } catch (error) {
-    console.error("Extension context check failed:", error.message);
-    return;
-  }
-  
-  // Check if webhook endpoint is configured
-  if (!WEBHOOK_ENDPOINT) {
-    console.error("Webhook endpoint not configured - cannot submit request");
+    
+    // Get webhook endpoint safely
+    let webhookEndpoint;
+    try {
+      webhookEndpoint = getWebhookEndpoint();
+    } catch (error) {
+      console.error("Error getting webhook endpoint:", error);
+      webhookEndpoint = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
+    }
+    
+    if (!webhookEndpoint) {
+      console.error("Webhook endpoint not configured - cannot submit request");
+      updateSidePanelWithError(query, "Webhook endpoint not configured");
+      return;
+    }
+    
+    console.log("requestDefinitionFromSidePanel called with query:", query);
+    console.log("CONFIG object:", CONFIG);
+    console.log("Webhook endpoint:", webhookEndpoint);
+    
+    // Get current page URL
+    const pageUrl = window.location.href;
+    const nowIso = new Date().toISOString();
+    
+    // Prepare request data (access key is now handled server-side)
+    const requestData = { 
+      term: query, 
+      page_url: pageUrl, 
+      timestamp: nowIso
+    };
+    
+    console.log("Sending webhook request from side panel:", requestData);
+    console.log("Webhook endpoint:", webhookEndpoint);
+    
+    // Show loading state in side panel
     const results = document.getElementById('jdp-results');
     if (results) {
       results.innerHTML = `
-        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-          <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Webhook Not Configured</div>
-          <div style="color: #856404; font-size: 14px; line-height: 1.5;">Request submission is not available. The webhook endpoint needs to be configured.</div>
+        <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+            <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <span style="color: #666;">Submitting request...</span>
+          </div>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
         </div>
       `;
     }
-    return;
-  }
-  
-  console.log("requestDefinitionFromSidePanel called with query:", query);
-  console.log("CONFIG object:", CONFIG);
-  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
-  
-  // Get current page URL
-  const pageUrl = window.location.href;
-  const nowIso = new Date().toISOString();
-  
-  // Prepare request data (access key is now handled server-side)
-  const requestData = { 
-    term: query, 
-    page_url: pageUrl, 
-    timestamp: nowIso
-  };
-  
-  console.log("Sending webhook request from side panel:", requestData);
-  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
-  
-  // Show loading state in side panel
-  const results = document.getElementById('jdp-results');
-  if (results) {
-    results.innerHTML = `
-      <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: center;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-          <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <span style="color: #666;">Submitting request...</span>
-        </div>
-        <style>
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        </style>
-      </div>
-    `;
-  }
-  
-  // Use fetch with proper CORS to our secure server
-  console.log("About to send fetch request to:", WEBHOOK_ENDPOINT);
-  console.log("Request method: POST");
-  console.log("Request data:", requestData);
-  
-  try {
-    // Use FormData to avoid CORS preflight request
-    const formData = new FormData();
-    formData.append('term', requestData.term);
-    formData.append('page_url', requestData.page_url);
-    formData.append('timestamp', requestData.timestamp);
-    if (requestData.access_key) {
-      formData.append('access_key', requestData.access_key);
-    }
     
-    const fetchPromise = fetch(WEBHOOK_ENDPOINT, {
-      method: 'POST',
-      body: formData
-    });
-    
-    console.log("Fetch promise created, waiting for response...");
-    
-    fetchPromise
-    .then(async (response) => {
-      console.log("Fetch response received:", response);
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
-      
-      try {
-        const responseData = await response.json();
-        console.log("Response data:", responseData);
-        
-        if (response.ok && responseData.success) {
-          console.log("Request submitted successfully from side panel");
-          
-          if (results && document.body.contains(results)) {
-            results.innerHTML = `
-              <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Request Submitted Successfully</div>
-                <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Your request for "${query}" has been sent to the Justice Definitions Project team.</div>
-                <div style="color: #155724; font-size: 12px; line-height: 1.4;">The term will be reviewed by experts and added to the database if approved.</div>
-              </div>
-            `;
-          }
-        } else {
-          console.error("Server returned error:", responseData.error);
-          
-          // If it's an "Invalid page URL" error, try to store locally as fallback
-          if (responseData.error && responseData.error.includes("Invalid page URL")) {
-            console.log("Attempting to store request locally as fallback...");
-            storeRequestLocally(requestData);
-            
-            if (results && document.body.contains(results)) {
-              results.innerHTML = `
-                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                  <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Webhook Server Issue</div>
-                  <div style="color: #856404; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">Webhook server rejected the page URL. Request has been stored locally for manual processing.</div>
-                  <div style="color: #856404; font-size: 12px; line-height: 1.4;">You can view stored requests in the browser console.</div>
-                </div>
-              `;
-            }
-          } else {
-            if (results && document.body.contains(results)) {
-              results.innerHTML = `
-                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                  <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">⚠ Server Error</div>
-                  <div style="color: #856404; font-size: 14px; line-height: 1.5;">${responseData.error || 'Unknown server error'}</div>
-                </div>
-              `;
-            }
-          }
-        }
-      } catch (domError) {
-        console.error("Could not update DOM after success (extension context may be invalidated):", domError.message);
-      }
-    })
-    .catch((error) => {
-      console.error("Request failed from side panel:", error);
-      console.error("Error name:", error.name);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-      
-      try {
-        if (results && document.body.contains(results)) {
-          let errorMessage = "Failed to submit request. Please try again.";
-          if (error.message && error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
-            errorMessage = "Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.";
-          }
-          
-          results.innerHTML = `
-            <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-              <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
-              <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${errorMessage}</div>
-              <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Error: ${error.message || 'Unknown error'}</div>
-              <div style="color: #721c24; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: ${error.name} - ${error.message}</div>
-            </div>
-          `;
-        }
-      } catch (domError) {
-        console.error("Could not update DOM after error (extension context may be invalidated):", domError.message);
-      }
-    });
-  } catch (fetchError) {
-    console.error("Failed to initiate fetch request (extension context may be invalidated):", fetchError.message);
-    console.error("Fetch error name:", fetchError.name);
-    console.error("Fetch error stack:", fetchError.stack);
+    // Use background script to avoid CORS issues
+    console.log("Sending webhook request via background script");
+    console.log("Request data:", requestData);
     
     try {
-      if (results && document.body.contains(results)) {
-        results.innerHTML = `
-          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-            <div style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">Extension Context Error</div>
-            <div style="color: #856404; font-size: 14px; line-height: 1.5;">Please reload the extension and try again.</div>
-            <div style="color: #856404; font-size: 11px; line-height: 1.4; margin-top: 8px; font-style: italic;">Debug: ${fetchError.name} - ${fetchError.message}</div>
-          </div>
-        `;
+      // Send message to background script to handle the webhook request
+      chrome.runtime.sendMessage({
+        type: "SEND_WEBHOOK_REQUEST",
+        data: requestData
+      }, (response) => {
+        console.log("Background script response:", response);
+        
+        if (chrome.runtime.lastError) {
+          console.error("Chrome runtime error:", chrome.runtime.lastError);
+          updateSidePanelWithError(query, "Extension communication error: " + chrome.runtime.lastError.message);
+          return;
+        }
+        
+        if (response && response.success) {
+          console.log("Webhook request successful via background script");
+          // Only show popup for non-side panel requests
+          if (!isSidePanelRequest()) {
+            showSuccessPopup(`"${query}" has been added to Request Definitions queue for experts to add to Justice Definitions Project.`);
+          }
+          // Update side panel with success message
+          updateSidePanelWithSuccess(query);
+        } else {
+          console.error("Webhook request failed via background script:", response);
+          // Only show popup for non-side panel requests
+          if (!isSidePanelRequest()) {
+            showErrorPopup(response?.error || "Request failed via background script");
+          }
+          // Update side panel with error message
+          updateSidePanelWithError(query, response?.error || "Request failed");
+        }
+        
+        // Clear request context after completion
+        clearRequestContext();
+      });
+    } catch (error) {
+      console.error("Error sending message to background script:", error);
+      // Only show popup for non-side panel requests
+      if (!isSidePanelRequest()) {
+        showErrorPopup("Failed to communicate with extension background script");
       }
-    } catch (domError) {
-      console.error("Could not update DOM after fetch error:", domError.message);
+      // Update side panel with error message
+      updateSidePanelWithError(query, "Failed to communicate with extension background script");
+      
+      // Clear request context after completion
+      clearRequestContext();
     }
+  } catch (error) {
+    console.error("Error in requestDefinitionFromSidePanel:", error);
+    updateSidePanelWithError(query, "An unexpected error occurred: " + error.message);
+    clearRequestContext();
   }
 }
 
@@ -775,6 +827,11 @@ window.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
 
 // Also expose it on the document for better compatibility
 document.requestDefinitionFromSidePanel = requestDefinitionFromSidePanel;
+
+// Make side panel functions globally accessible
+window.updateSidePanelWithSuccess = updateSidePanelWithSuccess;
+window.updateSidePanelWithError = updateSidePanelWithError;
+window.showSidePanelHome = showSidePanelHome;
 
 // Add a fallback function that can be called from the side panel
 window.handleDefinitionRequest = function(query) {
@@ -810,7 +867,7 @@ function testWebhookURL() {
   testFormData.append('term', 'test_term');
   testFormData.append('page_url', 'https://test.com');
   testFormData.append('timestamp', new Date().toISOString());
-  testFormData.append('access_key', CONFIG.WEBHOOK.ACCESS_KEY);
+  // Access key is now server-side only - removed for security
   
   fetch(CONFIG.WEBHOOK_URL, {
     method: 'POST',
@@ -1107,7 +1164,7 @@ function showDefinitionResult(title, definition, originalQuery) {
            style="color: #0066cc; text-decoration: none; font-size: 12px;">
           Read more →
         </a>
-        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+        <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
                 style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
           ✕
         </button>
@@ -1130,7 +1187,7 @@ function showDefinitionResult(title, definition, originalQuery) {
              style="color: #0066cc; text-decoration: none; font-size: 12px;">
             Read more →
           </a>
-          <button onclick="this.parentElement.parentElement.remove()" 
+          <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
                   style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
             ✕
           </button>
@@ -1172,7 +1229,7 @@ function showNoResult(query) {
               style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
         Request Definition
       </button>
-      <button onclick="this.parentElement.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
         ✕
       </button>
@@ -1207,8 +1264,9 @@ function requestDefinition(query) {
     return;
   }
   
-  // Check if webhook endpoint is configured
-  if (!WEBHOOK_ENDPOINT) {
+  // Get webhook endpoint
+  const webhookEndpoint = getWebhookEndpoint();
+  if (!webhookEndpoint) {
     console.error("Webhook endpoint not configured - cannot submit request");
     floatingPopup.innerHTML = `
       <div style="color: #856404; margin-bottom: 8px;">
@@ -1218,7 +1276,7 @@ function requestDefinition(query) {
         Request submission is not available. The webhook endpoint needs to be configured.
       </div>
       <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-        <button onclick="this.parentElement.parentElement.remove()" 
+        <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
                 style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
           ✕ Close
         </button>
@@ -1252,75 +1310,274 @@ function requestDefinition(query) {
     timestamp: nowIso
   };
   
-  console.log("Sending webhook request:", requestData);
-  console.log("Webhook endpoint:", WEBHOOK_ENDPOINT);
+  console.log("Sending webhook request via background script:", requestData);
   
-  // Use FormData to avoid CORS preflight request
-  const formData = new FormData();
-  formData.append('term', requestData.term);
-  formData.append('page_url', requestData.page_url);
-  formData.append('timestamp', requestData.timestamp);
-  if (requestData.access_key) {
-    formData.append('access_key', requestData.access_key);
+  // Show loading state in side panel
+  const results = document.getElementById('jdp-results');
+  if (results) {
+    results.innerHTML = `
+      <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin-bottom: 16px; text-align: center;">
+        <div style="font-size: 24px; color: #856404; margin-bottom: 12px;">⏳</div>
+        <div style="font-size: 18px; font-weight: 600; color: #856404; margin-bottom: 8px;">Submitting Request</div>
+        <div style="color: #856404; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+          Adding "<strong>${query}</strong>" to the Definition Requests queue...
+        </div>
+        <div style="color: #856404; font-size: 12px; line-height: 1.4;">
+          Please wait while we process your request.
+        </div>
+      </div>
+    `;
   }
   
-  fetch(WEBHOOK_ENDPOINT, {
-    method: 'POST',
-    body: formData
-  })
-  .then(async (response) => {
-    console.log("Response received:", response);
-    console.log("Response status:", response.status);
-    console.log("Response ok:", response.ok);
+  // Use background script to avoid CORS issues
+  chrome.runtime.sendMessage({
+    type: "SEND_WEBHOOK_REQUEST",
+    data: requestData
+  }, (response) => {
+    console.log("Background script response:", response);
     
-    try {
-      const responseText = await response.text();
-      console.log("Response text:", responseText);
-      
-      let responseData;
-      try {
-        responseData = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error("Failed to parse JSON response:", parseError);
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
-      }
-      
-      console.log("Parsed response data:", responseData);
-      
-      if (response.ok && responseData.success) {
-        console.log("Request submitted successfully");
-        showRequestSuccess(query);
-        } else {
-          console.error("Server returned error:", responseData.error);
-          
-          // If it's an "Invalid page URL" error, try to store locally as fallback
-          if (responseData.error && responseData.error.includes("Invalid page URL")) {
-            console.log("Attempting to store request locally as fallback...");
-            storeRequestLocally(requestData);
-            showRequestError(`Webhook server rejected the page URL. Request has been stored locally for manual processing.`);
-          } else {
-            showRequestError(`Server error: ${responseData.error || 'Unknown error'}`);
-          }
-        }
-    } catch (parseError) {
-      console.error("Failed to parse response:", parseError);
-      showRequestError("Failed to submit request. Please try again.");
+    if (chrome.runtime.lastError) {
+      console.error("Chrome runtime error:", chrome.runtime.lastError);
+      showErrorPopup("Extension communication error: " + chrome.runtime.lastError.message);
+      return;
     }
-  })
-  .catch((error) => {
-    console.error("Request failed:", error);
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
     
-    // Check if it's a blocked request
-    if (error.message && error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
-      showRequestError("Request blocked by ad blocker or browser extension. Please disable ad blockers for this site and try again.");
-    } else if (error.message && error.message.includes('Failed to fetch')) {
-      showRequestError("Network error: Unable to connect to the webhook server. Please check your internet connection and try again.");
+    if (response && response.success) {
+      console.log("Webhook request successful via background script");
+      // Only show popup for non-side panel requests
+      if (!isSidePanelRequest()) {
+        showSuccessPopup(`"${query}" has been added to Request Definitions queue for experts to add to Justice Definitions Project.`);
+      }
+      // Update side panel with success message
+      updateSidePanelWithSuccess(query);
+      // Clear request context
+      clearRequestContext();
     } else {
-      showRequestError(`Failed to submit request: ${error.message}`);
+      console.error("Webhook request failed via background script:", response);
+      // Only show popup for non-side panel requests
+      if (!isSidePanelRequest()) {
+        showErrorPopup(response?.error || "Request failed via background script");
+      }
+      // Update side panel with error message
+      updateSidePanelWithError(query, response?.error || "Request failed");
+      // Clear request context
+      clearRequestContext();
     }
   });
+  
+  return; // Exit early since we're using async message passing
+}
+
+// Clear request context after completion
+function clearRequestContext() {
+  setTimeout(() => {
+    window.currentRequestContext = null;
+    console.log('Request context cleared');
+  }, 3000); // Increased delay to 3 seconds to allow side panel to stay open longer
+}
+
+// Popup functions for user feedback
+function showSuccessPopup(message) {
+  console.log("Showing success popup:", message);
+  
+  // Check if popup exists and is in DOM
+  if (!floatingPopup || !document.body.contains(floatingPopup)) {
+    console.log("Popup not available, creating new one for success message");
+    createSuccessPopup(message);
+    return;
+  }
+  
+  // Update existing popup with success message
+  floatingPopup.innerHTML = `
+    <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+      <div style="font-size: 16px; font-weight: 600; color: #28a745; margin-bottom: 8px;">✓ Success</div>
+      <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${message}</div>
+      <div style="color: #155724; font-size: 12px; line-height: 1.4;">Your term has been added to the Definition Requests queue for the Justice Definitions Project team.</div>
+    </div>
+  `;
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    if (floatingPopup && document.body.contains(floatingPopup)) {
+      floatingPopup.remove();
+    }
+  }, 5000);
+}
+
+function showErrorPopup(message) {
+  console.log("Showing error popup:", message);
+  
+  // Check if popup exists and is in DOM
+  if (!floatingPopup || !document.body.contains(floatingPopup)) {
+    console.log("Popup not available, creating new one for error message");
+    createErrorPopup(message);
+    return;
+  }
+  
+  // Update existing popup with error message
+  floatingPopup.innerHTML = `
+    <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+      <div style="font-size: 16px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">▲ Request Failed</div>
+      <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${message}</div>
+      <div style="color: #721c24; font-size: 12px; line-height: 1.4;">Please try again or check your internet connection.</div>
+    </div>
+  `;
+  
+  // Auto-hide after 8 seconds
+  setTimeout(() => {
+    if (floatingPopup && document.body.contains(floatingPopup)) {
+      floatingPopup.remove();
+    }
+  }, 8000);
+}
+
+// Helper function to detect if request is from side panel
+function isSidePanelRequest() {
+  // Only check the explicit request context - this is the most reliable indicator
+  if (window.currentRequestContext === 'sidepanel') {
+    console.log('Side panel request context detected');
+    return true;
+  }
+  
+  console.log('Not a side panel request');
+  return false;
+}
+
+// Side panel feedback functions
+function updateSidePanelWithSuccess(query) {
+  console.log("Updating side panel with success for query:", query);
+  
+  // Only update if this is actually a side panel request
+  if (window.currentRequestContext !== 'sidepanel') {
+    console.log("Not a side panel request, skipping side panel update");
+    return;
+  }
+  
+  // Try to find the side panel overlay
+  let sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
+  
+  // If overlay not found, try to recreate it for side panel requests
+  if (!sidePanelOverlay || !document.body.contains(sidePanelOverlay)) {
+    console.log("Side panel overlay not found, attempting to recreate for side panel request");
+    createSidePanelOverlay();
+    sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
+    
+    if (!sidePanelOverlay) {
+      console.log("Failed to recreate side panel overlay");
+      return;
+    }
+  }
+  
+  // Ensure side panel is visible and stays visible
+  sidePanelOverlay.style.display = 'block';
+  sidePanelOverlay.style.visibility = 'visible';
+  sidePanelOverlay.style.zIndex = '10000';
+  
+  const results = document.getElementById('jdp-results');
+  if (results && document.body.contains(results)) {
+    try {
+      results.innerHTML = `
+        <div style="background: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 20px; margin-bottom: 16px; text-align: center;">
+          <div style="font-size: 24px; color: #28a745; margin-bottom: 12px;">✓</div>
+          <div style="font-size: 18px; font-weight: 600; color: #28a745; margin-bottom: 8px;">Request Submitted Successfully</div>
+          <div style="color: #155724; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+            Your request for "<strong>${query}</strong>" has been added to the Definition Requests queue for the Justice Definitions Project team.
+          </div>
+          <div style="color: #155724; font-size: 12px; line-height: 1.4; margin-bottom: 20px;">
+            The term will be reviewed by experts and added to the database if approved.
+          </div>
+        </div>
+      `;
+      
+      console.log("Side panel success message updated successfully");
+    } catch (error) {
+      console.error("Error updating side panel with success message:", error);
+    }
+  } else {
+    console.log("Results element not found or not in DOM, cannot update success message");
+  }
+}
+
+function updateSidePanelWithError(query, errorMessage) {
+  console.log("Updating side panel with error for query:", query, "Error:", errorMessage);
+  
+  // Only update if this is actually a side panel request
+  if (window.currentRequestContext !== 'sidepanel') {
+    console.log("Not a side panel request, skipping side panel update");
+    return;
+  }
+  
+  // Try to find the side panel overlay
+  let sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
+  
+  // If overlay not found, try to recreate it for side panel requests
+  if (!sidePanelOverlay || !document.body.contains(sidePanelOverlay)) {
+    console.log("Side panel overlay not found, attempting to recreate for side panel request");
+    createSidePanelOverlay();
+    sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
+    
+    if (!sidePanelOverlay) {
+      console.log("Failed to recreate side panel overlay");
+      return;
+    }
+  }
+  
+  // Ensure side panel is visible and stays visible
+  sidePanelOverlay.style.display = 'block';
+  sidePanelOverlay.style.visibility = 'visible';
+  sidePanelOverlay.style.zIndex = '10000';
+  
+  const results = document.getElementById('jdp-results');
+  if (results && document.body.contains(results)) {
+    try {
+      results.innerHTML = `
+        <div style="background: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 20px; margin-bottom: 16px; text-align: center;">
+          <div style="font-size: 24px; color: #dc3545; margin-bottom: 12px;">▲</div>
+          <div style="font-size: 18px; font-weight: 600; color: #dc3545; margin-bottom: 8px;">Request Failed</div>
+          <div style="color: #721c24; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+            Failed to submit request for "<strong>${query}</strong>".
+          </div>
+          <div style="color: #721c24; font-size: 12px; line-height: 1.4; margin-bottom: 20px; background: #f5c6cb; padding: 8px; border-radius: 4px;">
+            Error: ${errorMessage}
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="performSidePanelSearch('${query}')" 
+                    style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              Try Again
+            </button>
+          </div>
+        </div>
+      `;
+      
+      console.log("Side panel error message updated successfully");
+    } catch (error) {
+      console.error("Error updating side panel with error message:", error);
+    }
+  } else {
+    console.log("Results element not found or not in DOM, cannot update error message");
+  }
+}
+
+function showSidePanelHome() {
+  console.log("Showing side panel home");
+  
+  const results = document.getElementById('jdp-results');
+  const defaultContent = document.getElementById('jdp-default-content');
+  
+  if (results) {
+    results.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #666;">
+        <div style="font-size: 16px; margin-bottom: 12px;">Welcome to Justice Definitions Project</div>
+        <div style="font-size: 14px; line-height: 1.5;">
+          Search for legal definitions or request new terms to be added to our database.
+        </div>
+      </div>
+    `;
+  }
+  
+  if (defaultContent) {
+    defaultContent.style.display = 'block';
+  }
 }
 
 function showRequestSuccess(query) {
@@ -1343,7 +1600,7 @@ function showRequestSuccess(query) {
       Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-      <button onclick="this.parentElement.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
         ✕ Close
       </button>
@@ -1382,7 +1639,7 @@ function createSuccessPopup(query) {
       Your request for "<strong>${query}</strong>" has been sent to the Justice Definitions Project team.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-      <button onclick="this.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
         ✕ Close
       </button>
@@ -1425,7 +1682,7 @@ function showRequestError(message) {
       <strong>Alternative:</strong> You can also request definitions by clicking the extension icon and using the side panel search feature.
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-      <button onclick="this.parentElement.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
         ✕ Close
       </button>
@@ -1464,7 +1721,7 @@ function createErrorPopup(message) {
       ${message}
     </div>
     <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-      <button onclick="this.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; padding: 4px;">
         ✕ Close
       </button>
@@ -1503,7 +1760,7 @@ function showError(message) {
       <div style="color: #dc3545; margin-bottom: 8px;">
         ⚠ ${message}
       </div>
-      <button onclick="this.parentElement.remove()" 
+      <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
               style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
         ✕
       </button>
@@ -1529,6 +1786,7 @@ document.addEventListener("click", function(event) {
     }
     
     if (floatingPopup && !floatingPopup.contains(event.target)) {
+      console.log("Click outside popup detected, closing popup");
       floatingPopup.remove();
       floatingPopup = null;
     }
@@ -1590,18 +1848,20 @@ function onMessageReceived(message, sender, sendResponse) {
     if (message.type === "SEARCH_QUERY") {
       // Store the search query for the side panel
       chrome.storage.local.set({ lastSearchQuery: message.query });
-    
-    // Create overlay side panel instead of Chrome side panel
-    createSidePanelOverlay();
-    
-    // Perform search in the overlay
-    setTimeout(() => {
-      performSidePanelSearch(message.query);
-    }, 100);
+      
+      // Only create side panel if explicitly requested
+      if (message.openSidePanel === true) {
+        createSidePanelOverlay();
+        
+        // Perform search in the overlay
+        setTimeout(() => {
+          performSidePanelSearch(message.query);
+        }, 100);
+      }
     
     sendResponse({ success: true });
   } else if (message.type === "OPEN_SIDE_PANEL") {
-    // Create overlay side panel
+    // Only create side panel when explicitly requested
     createSidePanelOverlay();
     sendResponse({ success: true });
   } else if (message.type === "SIDE_PANEL_CLOSED") {

@@ -38,25 +38,7 @@ function onTabsReceived(tabs) {
 
 // Load configuration from config.js
 // CONFIG is already declared globally in config.js, so we just use it
-if (typeof CONFIG === 'undefined') {
-  // Fallback configuration if config.js is not available
-  window.CONFIG = {
-    API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php",
-    WEBHOOK: {
-      ENABLED: true,
-      ENDPOINT: "https://script.google.com/macros/s/AKfycbxGFWi9vIqBin1MdJwEr1N2iwqdaYRpG_i6WqKp8aB3RUxgpsx7As2svt25JPUxkbGU/exec"
-    },
-    API: {
-      TIMEOUT: 15000
-    },
-    DISPLAY: {
-      MAX_CHARS: 140,
-      EXTENDED_CHARS: 200,
-      MAX_EXTENDED_CHARS: 250,
-      MIN_WORD_COUNT: 4
-    }
-  };
-}
+// No fallback needed - config.js is loaded before this script
 
 // Server endpoints - will be configured from server config
 let SERVER_BASE_URL = null;

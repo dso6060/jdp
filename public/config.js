@@ -1,6 +1,11 @@
 // Configuration file for Justice Definitions Project Extension
 // This file now fetches configuration from the secure server
 
+// Server configuration URL - uses hardcoded deployment ID for Chrome extension
+const DEPLOYMENT_ID = 'AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU';
+const CONFIG_SERVER_URL = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
+const WEBHOOK_SERVER_URL = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
+
 // Default configuration (fallback)
 const DEFAULT_CONFIG = {
   // External Resource URLs
@@ -34,11 +39,6 @@ const DEFAULT_CONFIG = {
   }
 };
 
-// Server configuration URL (update this to your deployed server)
-const CONFIG_SERVER_URL = "https://script.google.com/macros/s/AKfycbxGFWi9vIqBin1MdJwEr1N2iwqdaYRpG_i6WqKp8aB3RUxgpsx7As2svt25JPUxkbGU/exec";
-
-// Webhook server URL (update this to your deployed server)
-const WEBHOOK_SERVER_URL = "https://script.google.com/macros/s/AKfycbxGFWi9vIqBin1MdJwEr1N2iwqdaYRpG_i6WqKp8aB3RUxgpsx7As2svt25JPUxkbGU/exec"; // Using Google Apps Script as fallback
 
 // Rate limiting storage
 const rateLimitStore = {
@@ -121,14 +121,23 @@ async function fetchServerConfig() {
 // Initialize configuration
 let CONFIG = DEFAULT_CONFIG;
 
+// Make config available globally for extension immediately
+window.EXTENSION_CONFIG = CONFIG;
+
 // Load server configuration asynchronously
 fetchServerConfig().then(serverConfig => {
   CONFIG = serverConfig;
+  window.EXTENSION_CONFIG = CONFIG; // Update global config
   console.log('Configuration updated from server');
+}).catch(error => {
+  console.warn('Failed to load server config, using default:', error);
+  // Keep using DEFAULT_CONFIG
 });
 
-// Make config available globally for extension
-window.EXTENSION_CONFIG = CONFIG;
+// Export deployment ID and URLs for other files to use
+window.DEPLOYMENT_ID = DEPLOYMENT_ID;
+window.CONFIG_SERVER_URL = CONFIG_SERVER_URL;
+window.WEBHOOK_SERVER_URL = WEBHOOK_SERVER_URL;
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {

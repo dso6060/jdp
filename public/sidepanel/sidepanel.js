@@ -1,7 +1,8 @@
 // Justice Definitions Project Side Panel Script
 
 // Load configuration
-let CONFIG = window.EXTENSION_CONFIG || {};
+// No fallback needed - config.js is loaded before this script
+let CONFIG = window.EXTENSION_CONFIG;
 
 // Initialize the side panel
 document.addEventListener('DOMContentLoaded', function() {
