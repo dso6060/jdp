@@ -6,17 +6,7 @@
 
 An open-source browser extension that makes legal language accessible by connecting webpage text selections to the Justice Definitions Project. This extension allows users to quickly look up legal definitions and contribute new terms for definition.
 
-## 🎬 Demo
-
-### Right-Click Definition Lookup
-![Justice Definitions Project Extension Demo](extension/assets/jdp_demo.gif)
-*Select any legal term on any webpage and right-click for instant definition previews in a floating popup.*
-
-### Side Panel Search Interface
-![Justice Definitions Project Side Panel Demo](extension/assets/jdp_demo3.gif)
-*Click the extension icon to open the sliding overlay panel with built-in search and request functionality.*
-
-## 🌟 Features
+## Features
 
 - **Quick Definition Lookup**: Select any legal term on any webpage and get instant definitions
 - **Side Panel Interface**: Clean, non-intrusive side panel for seamless browsing experience
@@ -26,7 +16,7 @@ An open-source browser extension that makes legal language accessible by connect
 - **Self-Hosted**: Complete control over your data and infrastructure
 - **Customizable**: Easily modify to work with your own definition database
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -34,7 +24,7 @@ An open-source browser extension that makes legal language accessible by connect
 - Modern browser (Chrome, Firefox, Edge, Safari)
 - Basic knowledge of browser extension development (optional)
 
-### 🎯 How It Works
+### How It Works
 
 The extension provides two main ways to access legal definitions:
 
@@ -42,6 +32,16 @@ The extension provides two main ways to access legal definitions:
 2. **Side Panel Search**: Click the extension icon to open a dedicated search interface
 
 Both methods allow you to request new definitions if they're not found in the database.
+
+## Demo
+
+### Right-Click Definition Lookup
+![Justice Definitions Project Extension Demo](extension/assets/jdp_demo.gif)
+*Select any legal term on any webpage and right-click for instant definition previews in a floating popup.*
+
+### Side Panel Search Interface
+![Justice Definitions Project Side Panel Demo](extension/assets/jdp_demo3.gif)
+*Click the extension icon to open the sliding overlay panel with built-in search and request functionality.*
 
 ### 1. Set Up Google Apps Script Backend
 
@@ -89,32 +89,7 @@ Both methods allow you to request new definitions if they're not found in the da
    - Click "Load unpacked" and select the `extension` folder
    - Pin the extension to your toolbar
 
-## 🎥 Visual Demonstrations
-
-### Right-Click Definition Lookup
-The extension's core feature - simply select any legal term and right-click to get instant definitions:
-
-![Right-Click Demo](extension/assets/jdp_demo.gif)
-
-**What you see:**
-- Text selection on any webpage
-- Right-click context menu with "Look up definition" option
-- Floating popup with definition content
-- Option to request missing definitions
-
-### Side Panel Search Interface
-Advanced search functionality with a dedicated side panel:
-
-![Side Panel Demo](extension/assets/jdp_demo3.gif)
-
-**What you see:**
-- Extension icon click to open side panel
-- Sliding overlay panel (400px width)
-- Built-in search functionality
-- Request system for missing terms
-- Clean, non-intrusive interface
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── extension/                      # Browser extension files
@@ -137,7 +112,7 @@ Advanced search functionality with a dedicated side panel:
 └── README.md                     # This file
 ```
 
-## ⚙️ Configuration Options
+## Configuration Options
 
 ### Security Settings
 
@@ -169,7 +144,7 @@ GEOGRAPHIC_LOGGING: {
 }
 ```
 
-## 🔧 Customization
+## Customization
 
 ### Adding Your Own Definition API
 
@@ -199,7 +174,7 @@ The extension is built with a modular architecture:
 - **Side Panel** (`extension/sidepanel/`): Contains the main user interface
 - **Options Page** (`extension/options/`): Extension settings and configuration
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### For Production Use
 
@@ -215,12 +190,12 @@ The extension is built with a modular architecture:
 - **Geographic Data**: Can be disabled by setting `GEOGRAPHIC_LOGGING.ENABLED: false`
 - **Request Logging**: Can be disabled by setting `LOG_REQUESTS: false`
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
 1. **Extension not loading**:
-   - Check that all files are in the `public` folder
+   - Check that all files are in the `extension` folder
    - Verify `manifest.json` is valid JSON
    - Check browser console for errors
 
@@ -241,7 +216,7 @@ Enable debug logging by adding this to your configuration:
 const DEBUG = true;
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how you can help:
 
@@ -259,17 +234,17 @@ We welcome contributions! Here's how you can help:
 4. Load the extension in developer mode
 5. Make your changes and test them
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Justice Definitions Project for the original concept
 - Google Apps Script for the backend infrastructure
 - The open-source community for inspiration and tools
 
-## 🔄 Version History
+## Version History
 
 - **v1.0.0-open-source**: Initial open-source release
   - Sanitized all secrets and credentials
