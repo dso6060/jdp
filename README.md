@@ -59,33 +59,38 @@ An open-source browser extension that makes legal language accessible by connect
 ### 2. Configure the Browser Extension
 
 1. **Update configuration files**:
-   - Open `public/config.js`
+   - Open `extension/config.js`
    - Replace `YOUR_GOOGLE_APPS_SCRIPT_DEPLOYMENT_ID_HERE` with your deployment ID
-   - Open `public/background.js`
+   - Open `extension/background.js`
    - Replace the webhook endpoint and access key with your values
 
 2. **Load the extension**:
    - Open Chrome/Edge: Go to `chrome://extensions/`
    - Enable "Developer mode"
-   - Click "Load unpacked" and select the `public` folder
+   - Click "Load unpacked" and select the `extension` folder
    - Pin the extension to your toolbar
 
 ## 📁 Project Structure
 
 ```
-├── public/                          # Browser extension files
-│   ├── manifest.json               # Extension manifest
-│   ├── background.js               # Background script
-│   ├── content.js                  # Content script
-│   ├── config.js                   # Configuration file
-│   ├── popup/                      # Extension popup
-│   ├── sidepanel/                  # Side panel interface
-│   ├── options/                    # Extension options page
-│   └── assets/                     # Icons and images
-├── google-apps-script/             # Backend server code
-│   └── Code.gs                     # Google Apps Script code
-├── docs/                           # Documentation
-└── README.md                       # This file
+├── extension/                      # Browser extension files
+│   ├── manifest.json              # Extension manifest
+│   ├── background.js              # Background script
+│   ├── content.js                 # Content script
+│   ├── config.js                  # Configuration file
+│   ├── popup/                     # Extension popup
+│   ├── sidepanel/                 # Side panel interface
+│   ├── options/                   # Extension options page
+│   └── assets/                    # Icons and images
+├── google-apps-script/            # Backend server code
+│   └── Code.gs                    # Google Apps Script code
+├── docs/                          # Documentation
+│   ├── SETUP_GUIDE.md            # Setup instructions
+│   ├── SECURITY.md               # Security guidelines
+│   └── PRIVACY_POLICY.md         # Privacy policy
+├── LICENSE                        # MIT License
+├── CONTRIBUTING.md               # Contribution guidelines
+└── README.md                     # This file
 ```
 
 ## ⚙️ Configuration Options
@@ -126,7 +131,7 @@ GEOGRAPHIC_LOGGING: {
 
 To connect to your own definition database instead of the Justice Definitions Project:
 
-1. **Update the API endpoint** in `public/config.js`:
+1. **Update the API endpoint** in `extension/config.js`:
    ```javascript
    const DEFAULT_CONFIG = {
      API_URL: "https://your-api-endpoint.com/api",
@@ -138,17 +143,17 @@ To connect to your own definition database instead of the Justice Definitions Pr
 
 ### Customizing the UI
 
-- **Icons**: Replace files in `public/assets/` with your own icons
-- **Colors**: Modify CSS in `public/sidepanel/sidepanel.css` and `public/popup/style.css`
+- **Icons**: Replace files in `extension/assets/` with your own icons
+- **Colors**: Modify CSS in `extension/sidepanel/sidepanel.css` and `extension/popup/style.css`
 - **Text**: Update strings in the HTML and JavaScript files
 
 ### Adding New Features
 
 The extension is built with a modular architecture:
-- **Background Script** (`background.js`): Handles extension lifecycle and webhook requests
-- **Content Script** (`content.js`): Manages text selection and side panel integration
-- **Side Panel** (`sidepanel/`): Contains the main user interface
-- **Options Page** (`options/`): Extension settings and configuration
+- **Background Script** (`extension/background.js`): Handles extension lifecycle and webhook requests
+- **Content Script** (`extension/content.js`): Manages text selection and side panel integration
+- **Side Panel** (`extension/sidepanel/`): Contains the main user interface
+- **Options Page** (`extension/options/`): Extension settings and configuration
 
 ## 🔒 Security Considerations
 

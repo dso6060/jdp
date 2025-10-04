@@ -6,8 +6,8 @@
 # =============================================================================
 
 # Configuration files with secrets
-public/config.js
-public/background.js
+extension/config.js
+extension/background.js
 *config*.js
 *secret*
 *credential*
@@ -135,6 +135,11 @@ web-ext-artifacts/
 store/
 chrome-web-store/
 firefox-addons/
+
+# Extension development files
+extension/config.js.bak
+extension/background.js.bak
+extension/*.backup
 
 # Extension testing
 test-results/

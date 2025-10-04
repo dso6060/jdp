@@ -112,17 +112,17 @@ Before you begin, make sure you have:
 
 1. **Download the extension files**:
    - Clone or download this repository
-   - Navigate to the `public` folder
+   - Navigate to the `extension` folder
 
 2. **Update the configuration**:
-   - Open `public/config.js` in a text editor
+   - Open `extension/config.js` in a text editor
    - Replace the deployment ID:
    ```javascript
    const DEPLOYMENT_ID = 'YOUR_ACTUAL_DEPLOYMENT_ID_HERE';
    ```
 
 3. **Update the background script**:
-   - Open `public/background.js` in a text editor
+   - Open `extension/background.js` in a text editor
    - Replace the webhook configuration:
    ```javascript
    const WEBHOOK_CONFIG = {
@@ -142,7 +142,7 @@ Before you begin, make sure you have:
 
 3. **Load the extension**:
    - Click "Load unpacked"
-   - Navigate to and select the `public` folder
+   - Navigate to and select the `extension` folder
    - The extension should now appear in your extensions list
 
 4. **Pin the extension**:
@@ -187,7 +187,7 @@ Before you begin, make sure you have:
 
 #### Issue: Extension not loading
 **Solution**: 
-- Make sure you selected the `public` folder, not the root folder
+- Make sure you selected the `extension` folder, not the root folder
 - Check that `manifest.json` exists and is valid JSON
 - Try refreshing the extensions page
 

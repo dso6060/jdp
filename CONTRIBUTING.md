@@ -136,8 +136,8 @@ Add screenshots to help explain your changes
    - Get your deployment ID and access key
 
 2. **Configure the extension**:
-   - Update `public/config.js` with your deployment ID
-   - Update `public/background.js` with your webhook config
+   - Update `extension/config.js` with your deployment ID
+   - Update `extension/background.js` with your webhook config
    - Load the extension in developer mode
 
 3. **Test your changes**:
