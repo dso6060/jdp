@@ -207,48 +207,7 @@ body {
   color: #999;
 }
 
-.wiki-iframe-container {
-  margin-top: 20px;
-  height: calc(100vh - 200px);
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-}
-
-.wiki-header {
-  text-align: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  width: 100%;
-  box-sizing: border-box;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.wiki-header h3 {
-  color: #0066cc;
-  margin-bottom: 4px;
-  font-size: 16px;
-}
-
-.wiki-header p {
-  color: #666;
-  font-size: 12px;
-}
-
-#wikiIframe {
-  flex: 1;
-  width: 100%;
-  min-width: 0;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  background: white;
-  box-sizing: border-box;
-}
+/* Removed iframe-related styles - using div-based overlay instead */
 
 .loading {
   text-align: center;
@@ -340,4 +299,98 @@ h1, h2, h3, h4, h5, h6, p, span, div, a {
 
 .content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Full definition view styles */
+.full-definition {
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.definition-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.back-btn {
+  padding: 6px 12px;
+  background: #f8f9fa;
+  color: #0066cc;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #e9ecef;
+  border-color: #0066cc;
+}
+
+.definition-header h2 {
+  margin: 0;
+  color: #0066cc;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.definition-content {
+  line-height: 1.6;
+}
+
+.definition-text {
+  margin-bottom: 16px;
+  color: #333;
+  font-size: 14px;
+}
+
+.definition-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.action-btn.primary {
+  background: #0066cc;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #004499;
+}
+
+.action-btn.secondary {
+  background: #f8f9fa;
+  color: #0066cc;
+  border: 1px solid #e1e5e9;
+}
+
+.action-btn.secondary:hover {
+  background: #e9ecef;
+  border-color: #0066cc;
+}
+
+.separator {
+  color: #ccc;
+  margin: 0 8px;
+  font-size: 12px;
 }

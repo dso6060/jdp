@@ -137,9 +137,10 @@ async function searchJDPWiki(query) {
 function setValuesFromJDP() {
   let displayText = getOptimalDisplayText(definitionText);
   
+  // Make the term heading clickable to open side panel
   document.getElementById(
     "word"
-  ).innerHTML = `${term} <a href=${sourceUrl} class="searchanchor" target="_blank">Read more →</a>`;
+  ).innerHTML = `<a href="#" class="term-link" onclick="openSidePanelWithDefinition('${term}', '${definitionText.replace(/'/g, "\\'")}', '${sourceUrl}'); return false;">${term}</a> <a href="#" class="searchanchor" onclick="openSidePanelWithDefinition('${term}', '${definitionText.replace(/'/g, "\\'")}', '${sourceUrl}'); return false;">Read more →</a>`;
   document.getElementById("status").innerHTML = "";
   document.getElementById("definition").innerHTML = displayText;
 }
@@ -192,6 +193,21 @@ function getOptimalDisplayText(text) {
   
   // Fallback: return truncated with ellipsis
   return truncated + "…";
+}
+
+function openSidePanelWithDefinition(term, definitionText, sourceUrl) {
+  // Get the current active tab
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs && tabs[0]) {
+      // Send message to content script to open side panel with the definition
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: 'OPEN_SIDE_PANEL_WITH_DEFINITION',
+        term: term,
+        definitionText: definitionText,
+        sourceUrl: sourceUrl
+      });
+    }
+  });
 }
 
 function showNoResultUI(query) {

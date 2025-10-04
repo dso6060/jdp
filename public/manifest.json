@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Justice Definitions Project",
-    "version": "0.9.0",
+    "version": "1.0.0-open-source",
     "action": {
         "default_icon": {
             "16": "assets/icon16.png",
@@ -17,13 +17,13 @@
         }
     ],
     "options_page": "options/options.html",
-    "description": "Make legal language accessible by connecting webpage selections to the Justice Definitions Project. Built for researchers, students, and practitioners.",
+    "description": "Open source browser extension for accessing legal definitions. Customizable and self-hosted.",
     "icons": {
       "16": "assets/icon16.png",
       "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     },
-    "author": "SandeepKrSuman",
+    "author": "Justice Definitions Project - Open Source Community",
     "background": {
         "service_worker": "background.js"
     },

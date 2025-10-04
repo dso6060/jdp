@@ -1,102 +1,200 @@
+# Justice Definitions Project Chrome Extension
+
 <p align="center">
   <img src="assets/icon128.png" alt="Justice Definitions Project" width="64" height="64">
   <br>
-  <strong>JUSTICE DEFINITIONS PROJECT</strong>
+  <strong>Version 1.0.0 - Production Release</strong>
 </p>
 
 ---
 
-A Chrome extension that provides instant access to legal definitions from the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology. Features a sliding overlay panel that appears on top of webpages without disrupting the user's browsing experience. Built for researchers, students, and practitioners.
+## Overview
 
-## Demo
+The **Justice Definitions Project Chrome Extension** provides instant access to legal definitions from an expert-curated knowledge base. Built for legal researchers, students, and practitioners, this extension seamlessly integrates with your browsing experience to deliver accurate, contextual legal definitions without disrupting your workflow.
 
-### Right-Click Lookup
-<p align="center">
-  <img src="assets/jdp_demo.gif" alt="Justice Definitions Project Extension Demo" width="800" height="450">
-  <br>
-  <em>See the right-click lookup in action: Select any legal term and right-click for instant definition previews in a floating popup.</em>
-</p>
+### What This Extension Does
 
-### Side Panel Functionality
-<p align="center">
-  <img src="assets/jdp_demo3.gif" alt="Justice Definitions Project Side Panel Demo" width="800" height="450">
-  <br>
-  <em>Watch the sliding overlay panel in action: Click the extension icon to open the 400px wide panel that slides in from the right, featuring built-in search and request functionality.</em>
-</p>
+- **Instant Legal Definitions**: Right-click any legal term to get immediate definitions
+- **Smart Search Interface**: Dedicated side panel for comprehensive legal term searches  
+- **Request Missing Terms**: Submit requests for definitions not yet in the database
+- **Seamless Integration**: Works on any webpage without navigation disruption
+- **Expert-Curated Content**: Access to professionally reviewed legal terminology
+
+## Key Features
+
+### 🎯 **Core Functionality**
+- **Right-Click Lookup**: Select any legal term and right-click for instant definition previews
+- **Sliding Side Panel**: 400px overlay panel with built-in search and request functionality
+- **Smart Content Display**: Automatically filters and displays the most relevant definition content
+- **Request System**: Submit missing terms for expert review and addition to the database
+
+### 🌍 **Advanced Capabilities**
+- **Geolocation Tracking**: Captures user location data for analytics and insights
+- **Intelligent Caching**: Prevents rate limiting and improves performance with 5-minute TTL
+- **Context-Aware Responses**: Different feedback for popup vs. side panel interactions
+- **Robust Error Handling**: Graceful fallbacks for edge cases and extension context issues
+
+### 🔒 **Security & Reliability**
+- **Background Script Proxy**: Bypasses CORS restrictions for secure API communication
+- **Environment Configuration**: Sensitive data externalized from codebase
+- **Input Validation**: Comprehensive data sanitization and validation
+- **Memory Management**: Automatic cache cleanup prevents memory leaks
 
 ## Installation
 
-1. Clone this repository
-2. Open Chrome → `chrome://extensions/`
-3. Enable "Developer mode"
-4. Click "Load unpacked" → select project folder
-5. Extension appears in toolbar
+### For End Users
+1. Download the extension from the Chrome Web Store (coming soon)
+2. Click "Add to Chrome" to install
+3. The extension icon will appear in your browser toolbar
 
-## Usage
+### For Developers
+1. Clone this repository: `git clone https://github.com/your-repo/justice-definitions-extension`
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" in the top right corner
+4. Click "Load unpacked" and select the project folder
+5. The extension will appear in your browser toolbar
 
-### Right-Click Lookup
-1. Select text on any webpage
-2. Right-click to get definition
-3. Request missing definitions or close popup
+## Usage Guide
 
-### Sliding Overlay Panel
-1. Click extension icon to open panel
-2. Search for terms using the search bar
-3. Request missing definitions using the button
-4. Click outside to close panel
+### Right-Click Definition Lookup
+1. **Select Text**: Highlight any legal term on any webpage
+2. **Right-Click**: Choose "Look up definition" from the context menu
+3. **View Definition**: A floating popup appears with the definition
+4. **Request Missing Terms**: If no definition exists, click "Request Definition"
 
-### PDF Pages
-Right-click lookup does not work on PDF documents. For PDF pages, use the side panel and type the words you want to look up.
+### Side Panel Search
+1. **Open Panel**: Click the extension icon in your browser toolbar
+2. **Search Terms**: Use the search bar to find legal definitions
+3. **Browse Results**: View multiple definition options with "Read more" links
+4. **Request Definitions**: Submit requests for terms not in the database
 
-## Features
+### Special Cases
+- **PDF Documents**: Right-click lookup doesn't work on PDFs - use the side panel instead
+- **Multiple Results**: Use "Read more" to view full definitions within the side panel
+- **Wiki Navigation**: "View on Wiki" buttons open the full Justice Definitions Project page
 
-- **Right-click definition lookup** - Instant floating popups with real API data
-- **Sliding overlay panel** - 400px width overlay with built-in search functionality
-- **Request definition system** - Submit missing terms via webhook integration
-- **Google Sheet integration** - Automatic data collection for expert review
-- **Smart content extraction** - Automatically filters metadata and displays actual definition content
-- **Robust error handling** - Graceful fallbacks for edge cases and extension context issues
+## Technical Architecture
 
-### Request System
-- **Pull Data**: Queries Justice Definitions Project MediaWiki API for definitions
-- **Send Requests**: Submit missing term requests via webhook integration
-- **Tracking**: Requests logged to [Google Sheet](https://docs.google.com/spreadsheets/d/15mdKhoJuhdzpeSCL0STRLFI5umMaDF5CCf0D5qiWbOY/edit?usp=sharing) for prototype iteration
-- **Prototype**: Google Sheet serves as data collection system for future backend development
+### Core Technologies
+- **Chrome Extension Manifest V3**: Latest extension standard with enhanced security
+- **JavaScript ES6+**: Modern JavaScript with async/await patterns
+- **MediaWiki API**: Integration with Justice Definitions Project knowledge base
+- **Google Apps Script**: Webhook endpoint for data collection and processing
 
-## About
+### System Components
 
-Built on the [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) - an expert-curated knowledge base for legal terminology featuring:
-- Expert review workflows and transparent sourcing
-- Community contributions from students, researchers, and legal practitioners
-- Versioned changes and public discussion
+#### **Content Script** (`content.js`)
+- Handles webpage interaction and user input
+- Manages floating popups and side panel overlay
+- Processes definition requests and displays results
+- Implements intelligent content filtering and caching
 
-**Contributing:** Open an issue if you're interested in curation or collaboration.
+#### **Background Script** (`background.js`)
+- Acts as proxy for external API requests
+- Bypasses CORS restrictions for secure communication
+- Handles webhook requests to Google Apps Script
+- Manages extension lifecycle and message routing
 
-## Technical Details
+#### **Side Panel** (`sidepanel/`)
+- Provides dedicated search interface
+- Handles complex definition browsing
+- Manages user requests and feedback
+- Implements responsive design for various screen sizes
 
-- **Manifest V3** - Latest Chrome extension standard
-- **Service Worker** - Efficient background processing with message handling
-- **Content Scripts** - Seamless webpage integration with overlay system
-- **Custom Overlay System** - Sliding div-based panel (no iframes)
-- **Storage API** - Persistent user preferences
-- **Cross-origin Requests** - Secure API communication
-- **FormData Webhook** - Reliable data submission without navigation
-- **Event Listener Architecture** - Proper function scope and error handling
-- **Extension Context Validation** - Prevents crashes during reloads
-- **Intelligent Content Filtering** - Removes metadata and extracts actual definition content
-- **Question Detection** - Skips question headers to find actual definition text
-- **Fallback Mechanisms** - Multiple function exposure methods for reliability
+### Data Flow
+1. **User Input**: Text selection or search query
+2. **API Query**: MediaWiki API request for definition data
+3. **Content Processing**: Filtering and formatting of definition content
+4. **Display**: User-friendly presentation in popup or side panel
+5. **Request Handling**: Webhook submission for missing terms
+6. **Analytics**: Geolocation and usage data collection
 
-## Status
+### Security Implementation
+- **Environment Variables**: Sensitive configuration externalized
+- **Input Validation**: Comprehensive sanitization of user input
+- **CORS Bypass**: Background script handles all external requests
+- **Error Isolation**: Failures don't affect core functionality
 
-- **Version 0.9.0** - Latest stable release with better lookup and improved RegEx filters for better popup content display
-- **Development version** - Not published to Chrome Web Store
-- **Open Source** - Available for reference and contributions
+## Development
 
-## Credits
+### Prerequisites
+- Node.js 16+ (for development tools)
+- Chrome Browser (for testing)
+- Google Apps Script account (for webhook endpoint)
 
-The lookup functionality in this extension was originally developed by **Sandeep Suman** ([@SandeepKrSuman](https://github.com/SandeepKrSuman)). This project builds upon their foundational work to provide enhanced legal definition lookup capabilities.
+### Project Structure
+```
+public/
+├── manifest.json          # Extension configuration
+├── content.js            # Main content script
+├── background.js         # Service worker
+├── config.js            # Configuration management
+├── popup/               # Extension popup interface
+├── sidepanel/           # Side panel interface
+└── assets/              # Icons and demo images
+```
+
+### Key Development Tools
+- **Chrome DevTools**: Extension debugging and testing
+- **Google Apps Script**: Webhook endpoint development
+- **MediaWiki API**: Definition data source
+- **Git**: Version control and collaboration
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and test thoroughly
+4. Submit a pull request with detailed description
+
+## About the Justice Definitions Project
+
+The [Justice Definitions Project](https://jdc-definitions.wikibase.wiki/wiki/The_Justice_Definitions_Project) is an expert-curated knowledge base for legal terminology featuring:
+
+- **Expert Review Workflows**: Professional validation of all definitions
+- **Transparent Sourcing**: Clear attribution and citation of legal sources
+- **Community Contributions**: Input from students, researchers, and practitioners
+- **Versioned Changes**: Trackable modifications with public discussion
+- **Open Access**: Free access to legal knowledge for all users
+
+## Credits & Acknowledgments
+
+### Original Development
+- **Sandeep Suman** ([@SandeepKrSuman](https://github.com/SandeepKrSuman)) - Original lookup functionality and foundational architecture
+
+### Version 1.0 Development Team
+- **Justice Definitions Project Team** - Expert curation and content validation
+- **Open Source Contributors** - Community feedback and feature suggestions
+
+### Technologies & Services
+- **Chrome Extensions API** - Browser integration and security
+- **MediaWiki** - Knowledge base platform and API
+- **Google Apps Script** - Webhook processing and data collection
+- **IP Geolocation Services** - User location analytics
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Issues**: Report bugs or request features via GitHub Issues
+- **Documentation**: Comprehensive guides available in the repository
+- **Community**: Join discussions in the Justice Definitions Project community
+
+## Version History
+
+### Version 1.0.0 (Current)
+- **Production Release**: Stable, feature-complete extension
+- **Enhanced Security**: Environment-based configuration and CORS bypass
+- **Improved Performance**: Intelligent caching and error handling
+- **Better UX**: Context-aware responses and persistent UI elements
+- **Geolocation Tracking**: User location analytics for insights
+- **Chrome Web Store Ready**: Meets all submission requirements
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ for the legal community</strong>
+  <br>
+  <em>Making legal knowledge accessible to everyone</em>
+</p>

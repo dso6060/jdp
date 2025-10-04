@@ -4,10 +4,10 @@
 // Track side panel status
 let sidePanelStatus = new Map(); // windowId -> isOpen
 
-// Webhook configuration
+// Webhook configuration - Replace with your own values
 const WEBHOOK_CONFIG = {
-  ENDPOINT: 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook',
-  ACCESS_KEY: 'daksh_jdc_2025_October'
+  ENDPOINT: 'https://script.google.com/macros/s/YOUR_GOOGLE_APPS_SCRIPT_DEPLOYMENT_ID_HERE/exec/webhook',
+  ACCESS_KEY: 'your_secure_access_key_here'
 };
 
 // Listen for extension icon clicks

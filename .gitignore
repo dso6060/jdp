@@ -1,75 +1,301 @@
-# ===========================================
-# PRIVATE FOLDERS (NEVER COMMIT)
-# ===========================================
-# All server-side code and secrets
-secrets/
-temp/
-private/
-server/
-production/
+# Justice Definitions Project - Open Source
+# Git ignore file for browser extension project
 
-# ===========================================
-# SECURITY FILES (NEVER COMMIT)
-# ===========================================
-# Files containing hardcoded secrets
-google-apps-script-fixed.js
-google-apps-script.js
-config-secure.js
-config-production.js
-secrets/
-keys/
-certificates/
+# =============================================================================
+# SECURITY - NEVER COMMIT THESE FILES
+# =============================================================================
 
-# Environment variables
+# Configuration files with secrets
+public/config.js
+public/background.js
+*config*.js
+*secret*
+*credential*
+*key*
+*password*
+*token*
+
+# Environment files
 .env
 .env.local
+.env.development
+.env.test
 .env.production
-.env.staging
+.env.*.local
 
-# API keys and tokens
-api-keys.json
-tokens.json
-credentials.json
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
+# Google Apps Script deployment files
+google-apps-script/.clasp.json
+google-apps-script/.claspignore
+.clasp.json
+.claspignore
 
-# ===========================================
-# CHROME EXTENSION SPECIFIC
-# ===========================================
-# Extension build files
-*.crx
-*.zip
-*.xpi
-chrome-extension-build.zip
-
-# ===========================================
+# =============================================================================
 # DEVELOPMENT FILES
-# ===========================================
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-*.temp
-
-# Build outputs
-dist/
-build/
+# =============================================================================
 
 # Logs
+logs
 *.log
-logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# =============================================================================
+# BROWSER EXTENSION SPECIFIC
+# =============================================================================
+
+# Extension build files
+*.crx
+*.xpi
+*.zip
+web-ext-artifacts/
+
+# Browser extension store files
+store/
+chrome-web-store/
+firefox-addons/
+
+# Extension testing
+test-results/
+coverage/
+
+# =============================================================================
+# GOOGLE APPS SCRIPT SPECIFIC
+# =============================================================================
+
+# Google Apps Script files (keep template, ignore personal deployments)
+# Keep the template file in google-apps-script/Code.gs
+google-apps-script/Code.gs.bak
+google-apps-script/*.backup
+google-apps-script/personal/
+
+# Apps Script deployment configurations
+deployment.json
+deployment-*.json
+
+# =============================================================================
+# EDITOR AND IDE FILES
+# =============================================================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# BACKUP AND ARCHIVE FILES
+# =============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.tmp
+
+# Archive files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# =============================================================================
+# DOCUMENTATION BUILD FILES
+# =============================================================================
+
+# Documentation builds
+docs/_build/
+site/
+_site/
+
+# =============================================================================
+# TESTING FILES
+# =============================================================================
+
+# Test results
+test-results/
+coverage/
+.nyc_output/
+
+# Jest
+jest.config.js
+jest.config.ts
+
+# =============================================================================
+# PERSONAL NOTES AND TODO FILES
+# =============================================================================
+
+# Personal development notes
+notes/
+personal/
+todo/
+TODO.md
+NOTES.md
+PERSONAL.md
+
+# =============================================================================
+# CUSTOM ADDITIONS
+# =============================================================================
+
+# Add any project-specific files to ignore here
+# Examples:
+# custom-config.json
+# local-settings.js
+# deployment-keys.txt

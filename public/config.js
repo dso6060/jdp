@@ -1,8 +1,9 @@
 // Configuration file for Justice Definitions Project Extension
-// This file now fetches configuration from the secure server
+// Open Source Version - Replace placeholders with your own values
 
-// Server configuration URL - uses hardcoded deployment ID for Chrome extension
-const DEPLOYMENT_ID = 'AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU';
+// Server configuration URL - Replace with your Google Apps Script deployment ID
+// Get this from your deployed Google Apps Script web app
+const DEPLOYMENT_ID = 'YOUR_GOOGLE_APPS_SCRIPT_DEPLOYMENT_ID_HERE';
 const CONFIG_SERVER_URL = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
 const WEBHOOK_SERVER_URL = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
 

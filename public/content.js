@@ -1,13 +1,16 @@
-// Listen for right-click (context menu) to trigger lookup
+/**
+ * Justice Definitions Project Chrome Extension - Content Script
+ * Handles webpage interaction, definition lookup, and side panel management
+ */
 document.addEventListener("contextmenu", handleRightClick);
-
-// Message listener is defined later in the file
 
 var selectedText;
 var floatingPopup = null;
 var sidePanelOverlay = null;
 
-// Global function to check if extension context is still valid
+/**
+ * Validates Chrome extension context before executing operations
+ */
 function isExtensionContextValid() {
   try {
     return typeof chrome !== 'undefined' && 
@@ -20,7 +23,9 @@ function isExtensionContextValid() {
   }
 }
 
-// Global function to safely execute code only if context is valid
+/**
+ * Safely executes functions only when extension context is valid
+ */
 function safeExecute(fn, errorMessage = "Extension context invalidated") {
   if (!isExtensionContextValid()) {
     console.error(errorMessage);
@@ -33,6 +38,524 @@ function safeExecute(fn, errorMessage = "Extension context invalidated") {
     return false;
   }
 }
+
+/**
+ * Opens side panel with definition content from floating popup
+ */
+function openSidePanelWithDefinition(term, definitionText, sourceUrl) {
+  try {
+    window.currentRequestContext = 'sidepanel';
+    
+    if (floatingPopup) {
+      floatingPopup.remove();
+      floatingPopup = null;
+    }
+    
+    createSidePanelOverlay();
+    
+    setTimeout(() => {
+      showPopupDefinition({
+        term: term,
+        definitionText: definitionText,
+        sourceUrl: sourceUrl
+      });
+      
+      setTimeout(() => {
+        window.currentRequestContext = null;
+      }, 5000);
+    }, 100);
+  } catch (error) {
+    console.error('Error in openSidePanelWithDefinition:', error);
+    if (floatingPopup) {
+      floatingPopup.innerHTML = `
+        <div style="color: #dc3545; margin-bottom: 8px;">
+          <strong>Error opening side panel</strong>
+        </div>
+        <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
+          ${error.message}
+        </div>
+        <button onclick="document.getElementById('jdp-floating-popup')?.remove()" 
+                style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px;">
+          ✕
+        </button>
+      `;
+    }
+  }
+}
+
+/**
+ * Displays full definition content in the side panel overlay
+ */
+async function showFullDefinition(index) {
+  const results = document.getElementById('jdp-results');
+  const definitionView = document.getElementById('jdp-definition-view');
+  
+  if (!window.currentSearchResults || !window.currentSearchResults[index]) {
+    console.error('No search results available for index:', index);
+    return;
+  }
+  
+  const result = window.currentSearchResults[index];
+  
+  if (results) results.style.display = 'none';
+  if (definitionView) {
+    definitionView.style.display = 'block';
+    definitionView.innerHTML = `
+      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <button data-action="show-search-results" 
+                  style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            ← Back to Results
+          </button>
+        </div>
+        <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${result.title}</h2>
+      </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #666;">
+          <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span>Loading full content...</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button data-action="open-wiki" data-url="${result.url}" 
+                  style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            View on Wiki →
+          </button>
+          <button data-action="show-search-results" 
+                  style="padding: 8px 16px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            Back to Results
+          </button>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+    
+    try {
+      const fullContent = await fetchFullWikiContent(result.title, result.url);
+      
+      definitionView.innerHTML = `
+      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <button data-action="show-search-results" 
+                  style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            ← Back to Results
+          </button>
+          <button data-action="open-wiki" data-url="${result.url}" 
+                  style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            View on Wiki →
+          </button>
+        </div>
+        <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${result.title}</h2>
+      </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="color: #333; font-size: 14px; margin-bottom: 12px; line-height: 1.4; max-width: 100%; word-wrap: break-word;">
+            ${formatDefinitionContent(fullContent)}
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('Error loading full content:', error);
+      definitionView.innerHTML = `
+        <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <button data-action="show-search-results" 
+                    style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              ← Back to Results
+            </button>
+          </div>
+          <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${result.title}</h2>
+        </div>
+        <div style="line-height: 1.4; margin-bottom: 12px;">
+          <div style="color: #dc3545; font-size: 14px; margin-bottom: 12px;">
+            Error loading full content. ${error.message}
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button data-action="open-wiki" data-url="${result.url}" 
+                    style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              View on Wiki →
+            </button>
+            <button data-action="show-search-results" 
+                    style="padding: 8px 16px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              Back to Results
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
+/**
+ * Displays search results in the side panel overlay
+ */
+function showSearchResults() {
+  const results = document.getElementById('jdp-results');
+  const definitionView = document.getElementById('jdp-definition-view');
+  
+  if (results) results.style.display = 'block';
+  if (definitionView) definitionView.style.display = 'none';
+}
+
+/**
+ * Opens wiki page in a new tab
+ */
+function openInWiki(url) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.create({ url: url });
+    } else {
+      window.open(url, '_blank');
+    }
+  } catch (error) {
+    console.error('Error opening wiki page:', error);
+    window.open(url, '_blank');
+  }
+}
+
+/**
+ * Global cache for full content to prevent redundant API calls
+ */
+window.fullContentCache = window.fullContentCache || {};
+
+/**
+ * Formats definition content for better readability
+ */
+function formatDefinitionContent(content) {
+  if (!content) return '';
+  
+  // Split content into lines and process each line
+  const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  let formattedContent = '';
+  let inParagraph = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if line looks like a heading (short, ends with colon, or is in caps)
+    const isHeading = line.length < 100 && (
+      line.endsWith(':') || 
+      line === line.toUpperCase() && line.length > 3 ||
+      /^[A-Z][a-z\s]+:$/.test(line)
+    );
+    
+    // Check if line looks like a question
+    const isQuestion = line.startsWith('What is') || line.startsWith('Who is') || 
+                      line.startsWith('How') || line.startsWith('Why') || 
+                      line.startsWith('When') || line.startsWith('Where');
+    
+    if (isHeading) {
+      // Close previous paragraph if open
+      if (inParagraph) {
+        formattedContent += '</p>';
+        inParagraph = false;
+      }
+      
+      // Add heading with styling
+      formattedContent += `<h3 style="color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 16px; font-weight: 600; margin: 16px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #e1e5e9;">${line}</h3>`;
+      
+    } else if (isQuestion) {
+      // Close previous paragraph if open
+      if (inParagraph) {
+        formattedContent += '</p>';
+        inParagraph = false;
+      }
+      
+      // Add question with styling
+      formattedContent += `<div style="color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 15px; font-weight: 500; margin: 12px 0 6px 0; padding: 6px 10px; background: #f8f9fa; border-left: 3px solid #0066cc; border-radius: 4px;">${line}</div>`;
+      
+    } else {
+      // Regular paragraph content
+      if (!inParagraph) {
+        formattedContent += '<p style="margin: 0 0 8px 0; text-align: justify; line-height: 1.4; font-family: \'Calibri\', \'Candara\', \'Segoe\', \'Segoe UI\', \'Optima\', Arial, sans-serif;">';
+        inParagraph = true;
+      }
+      
+      // Add line with proper spacing
+      formattedContent += line + ' ';
+    }
+  }
+  
+  // Close final paragraph if open
+  if (inParagraph) {
+    formattedContent += '</p>';
+  }
+  
+  // If no formatting was applied, return original content with basic paragraph breaks
+  if (formattedContent === '') {
+    return content.split('\n\n').map(paragraph => 
+      `<p style="margin: 0 0 8px 0; text-align: justify; line-height: 1.4; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif;">${paragraph.trim()}</p>`
+    ).join('');
+  }
+  
+  return formattedContent;
+}
+
+/**
+ * Stores full content in cache with timestamp
+ */
+function cacheFullContent(term, fullContent) {
+  if (fullContent && fullContent.length > 50) {
+    window.fullContentCache[term.toLowerCase()] = {
+      content: fullContent,
+      timestamp: Date.now()
+    };
+  }
+}
+
+/**
+ * Retrieves cached content if not expired
+ */
+function getCachedFullContent(term) {
+  const cached = window.fullContentCache[term.toLowerCase()];
+  if (cached) {
+    const isExpired = Date.now() - cached.timestamp > 5 * 60 * 1000;
+    if (!isExpired) {
+      return cached.content;
+    } else {
+      delete window.fullContentCache[term.toLowerCase()];
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetches full wiki content for a term using MediaWiki API
+ */
+async function fetchFullWikiContent(term, sourceUrl) {
+  try {
+    const cachedContent = getCachedFullContent(term);
+    if (cachedContent) {
+      return cachedContent;
+    }
+    
+    const urlParts = sourceUrl.split('/wiki/');
+    if (urlParts.length < 2) {
+      throw new Error('Invalid wiki URL');
+    }
+    
+    const pageTitle = decodeURIComponent(urlParts[1]);
+    
+    const api = "https://jdc-definitions.wikibase.wiki/w/api.php";
+    const extractParams = `action=query&prop=extracts&explaintext=1&exsectionformat=plain&format=json&origin=*&titles=${encodeURIComponent(pageTitle)}`;
+    
+    const response = await fetch(`${api}?${extractParams}`, {
+      method: 'GET',
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    const pages = data.query?.pages;
+    if (!pages) {
+      throw new Error('No pages found in API response');
+    }
+    
+    const pageId = Object.keys(pages)[0];
+    const page = pages[pageId];
+    
+    if (page.missing) {
+      throw new Error('Page not found');
+    }
+    
+    const content = page.extract || '';
+    
+    if (content && content.length > 50) {
+      cacheFullContent(term, content);
+      return content;
+    } else {
+      throw new Error('Content too short or empty');
+    }
+    
+  } catch (error) {
+    console.error('Error fetching full wiki content:', error);
+    return `Unable to retrieve full content: ${error.message}. Click "View on Wiki" to access the page directly.`;
+  }
+}
+
+/**
+ * Displays popup definition in the side panel overlay with full wiki content
+ */
+async function showPopupDefinition(data) {
+  
+  const results = document.getElementById('jdp-results');
+  const definitionView = document.getElementById('jdp-definition-view');
+  const defaultContent = document.getElementById('jdp-default-content');
+  
+  if (results) results.style.display = 'none';
+  if (defaultContent) defaultContent.style.display = 'none';
+  
+  if (definitionView) {
+    definitionView.style.display = 'block';
+    definitionView.innerHTML = `
+      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <button data-action="show-search-results" 
+                  style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            ← Back to Search
+          </button>
+        </div>
+        <h2 style="margin: 0; color: #0066cc; font-size: 20px; font-weight: 600; line-height: 1.3;">${data.term}</h2>
+      </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #666;">
+          <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span>Loading full content...</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button data-action="open-wiki" data-url="${data.sourceUrl}" 
+                  style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            View on Wiki →
+          </button>
+          <button data-action="show-search-results" 
+                  style="padding: 8px 16px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+            Back to Search
+          </button>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+    
+    try {
+      const fullContent = await fetchFullWikiContent(data.term, data.sourceUrl);
+      
+      // Check if we got meaningful content
+      if (fullContent && fullContent !== 'No content available' && !fullContent.includes('Error loading')) {
+        definitionView.innerHTML = `
+          <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+              <button data-action="show-search-results" 
+                      style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                ← Back to Search
+              </button>
+              <button data-action="open-wiki" data-url="${data.sourceUrl}" 
+                      style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                View on Wiki →
+              </button>
+            </div>
+            <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${data.term}</h2>
+          </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="color: #333; font-size: 14px; margin-bottom: 12px; line-height: 1.4; max-width: 100%; word-wrap: break-word;">
+              ${formatDefinitionContent(fullContent)}
+            </div>
+          </div>
+        `;
+      } else {
+        definitionView.innerHTML = `
+          <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+              <button data-action="show-search-results" 
+                      style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                ← Back to Search
+              </button>
+              <button data-action="open-wiki" data-url="${data.sourceUrl}" 
+                      style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                View on Wiki →
+              </button>
+            </div>
+            <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${data.term}</h2>
+          </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="color: #333; font-size: 14px; margin-bottom: 12px; line-height: 1.4; max-width: 100%; word-wrap: break-word;">
+              ${formatDefinitionContent(data.definitionText || 'No detailed definition available.')}
+            </div>
+            <div style="color: #666; font-size: 12px; margin-bottom: 12px; padding: 6px; background: #f8f9fa; border-radius: 4px;">
+              Note: Full wiki content could not be loaded. Click "View on Wiki" to see the complete definition.
+            </div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Error loading full content:', error);
+      definitionView.innerHTML = `
+        <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e1e5e9;">
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <button data-action="show-search-results" 
+                    style="padding: 6px 12px; background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              ← Back to Search
+            </button>
+            <button data-action="open-wiki" data-url="${data.sourceUrl}" 
+                    style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              View on Wiki →
+            </button>
+          </div>
+          <h2 style="margin: 0; color: #0066cc; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3;">${data.term}</h2>
+        </div>
+      <div style="line-height: 1.4; margin-bottom: 12px;">
+        <div style="color: #333; font-size: 14px; margin-bottom: 12px; line-height: 1.4; max-width: 100%; word-wrap: break-word;">
+            ${formatDefinitionContent(data.definitionText || 'No detailed definition available.')}
+          </div>
+          <div style="color: #dc3545; font-size: 12px; margin-bottom: 12px; padding: 6px; background: #f8d7da; border-radius: 4px;">
+            Error loading full content: ${error.message}
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
+// Functions are available through event delegation - no need for global assignment
+
+// Event delegation for navigation buttons
+document.addEventListener('click', function(event) {
+  const target = event.target;
+  
+  // Handle "Read more" buttons in side panel
+  if (target.matches('[data-action="show-full-definition"]')) {
+    event.preventDefault();
+    const index = parseInt(target.getAttribute('data-index'));
+    if (!isNaN(index)) {
+      showFullDefinition(index);
+    }
+    return;
+  }
+  
+  // Handle "View on Wiki" buttons
+  if (target.matches('[data-action="open-wiki"]')) {
+    event.preventDefault();
+    const url = target.getAttribute('data-url');
+    if (url) {
+      openInWiki(url);
+    }
+    return;
+  }
+  
+  // Handle "Back to Results" buttons
+  if (target.matches('[data-action="show-search-results"]')) {
+    event.preventDefault();
+    showSearchResults();
+    return;
+  }
+  
+  // Handle "Read more" links in floating popup
+  if (target.matches('[data-action="open-side-panel-with-definition"]')) {
+    event.preventDefault();
+    const term = target.getAttribute('data-term');
+    const definitionText = target.getAttribute('data-definition');
+    const sourceUrl = target.getAttribute('data-source-url');
+    if (term && definitionText && sourceUrl) {
+      openSidePanelWithDefinition(term, definitionText, sourceUrl);
+    }
+    return;
+  }
+});
 
 // Function to store request locally when webhook fails
 function storeRequestLocally(requestData) {
@@ -57,8 +580,7 @@ function storeRequestLocally(requestData) {
     // Store back to localStorage
     localStorage.setItem('jdp_stored_requests', JSON.stringify(existingRequests));
     
-    console.log(`Request stored locally. Total stored requests: ${existingRequests.length}`);
-    console.log('Stored request:', storedRequest);
+    // Request stored locally
     
     return true;
   } catch (error) {
@@ -81,7 +603,7 @@ function getStoredRequests() {
 function clearStoredRequests() {
   try {
     localStorage.removeItem('jdp_stored_requests');
-    console.log('Stored requests cleared');
+    // Stored requests cleared
     return true;
   } catch (error) {
     console.error('Failed to clear stored requests:', error);
@@ -113,7 +635,7 @@ function filterEnglishContent(text) {
     
     // Skip lines with non-English characters
     if (nonEnglishPattern.test(trimmedLine)) {
-      console.log(`Filtering out non-English line: "${trimmedLine}"`);
+        // Filtering out non-English line
       continue;
     }
     
@@ -198,7 +720,7 @@ function filterEnglishContent(text) {
     let isNonEnglish = false;
     for (const pattern of nonEnglishIndicators) {
       if (pattern.test(trimmedLine)) {
-        console.log(`Filtering out non-English indicator line: "${trimmedLine}"`);
+        // Filtering out non-English indicator line
         isNonEnglish = true;
         break;
       }
@@ -221,7 +743,7 @@ function initializeConfig() {
   if (window.EXTENSION_CONFIG) {
     CONFIG = window.EXTENSION_CONFIG;
     configLoaded = true;
-    console.log('Extension config loaded immediately');
+    // Extension config loaded immediately
     return true;
   }
   
@@ -229,12 +751,12 @@ function initializeConfig() {
   CONFIG = {
     WEBHOOK: {
       ENABLED: true,
-      ENDPOINT: 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook'
+      ENDPOINT: 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec/webhook'
     },
     API_URL: "https://jdc-definitions.wikibase.wiki/w/api.php"
   };
   configLoaded = true;
-  console.log('Using fallback config');
+  // Using fallback config
   return false;
 }
 
@@ -251,12 +773,12 @@ function initializeExtension() {
     // Initialize webhook endpoint with fallback
     initializeWebhookEndpointImmediate();
     
-    console.log("Extension initialized successfully");
+    // Extension initialized successfully
   } catch (error) {
     console.error("Extension initialization failed:", error);
     // Set fallback values
-    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
-    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec';
+    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec/webhook';
+    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec';
   }
 }
 
@@ -269,7 +791,7 @@ function waitForConfig() {
     if (window.EXTENSION_CONFIG) {
       CONFIG = window.EXTENSION_CONFIG;
       configLoaded = true;
-      console.log('Extension config loaded successfully');
+      // Extension config loaded successfully
       resolve(CONFIG);
       return;
     }
@@ -279,7 +801,7 @@ function waitForConfig() {
       if (window.EXTENSION_CONFIG) {
         CONFIG = window.EXTENSION_CONFIG;
         configLoaded = true;
-        console.log('Extension config loaded successfully');
+        // Extension config loaded successfully
         resolve(CONFIG);
       } else {
         setTimeout(checkConfig, 100);
@@ -292,10 +814,10 @@ function waitForConfig() {
 
 // Try to load updated config asynchronously
 waitForConfig().then(config => {
-  console.log('Config updated from server, re-initializing webhook endpoint');
+  // Config updated from server, re-initializing webhook endpoint
   initializeWebhookEndpoint();
 }).catch(error => {
-  console.log('Server config not available, using fallback config');
+  // Server config not available, using fallback config
 });
 
 // Initialize webhook endpoint immediately with fallback
@@ -303,12 +825,12 @@ function initializeWebhookEndpointImmediate() {
   if (CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
     WEBHOOK_ENDPOINT = CONFIG.WEBHOOK.ENDPOINT;
     SERVER_BASE_URL = CONFIG.WEBHOOK.ENDPOINT.replace('/webhook', '');
-    console.log("Webhook endpoint initialized immediately:", WEBHOOK_ENDPOINT);
+    // Webhook endpoint initialized immediately
   } else {
     // Set fallback webhook endpoint immediately
-    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
-    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec';
-    console.log("Using fallback webhook endpoint:", WEBHOOK_ENDPOINT);
+    WEBHOOK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec/webhook';
+    SERVER_BASE_URL = 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec';
+    // Using fallback webhook endpoint
   }
 }
 
@@ -319,7 +841,7 @@ function getWebhookEndpoint() {
   }
   
   // Fallback endpoint
-  return 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
+  return 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec/webhook';
 }
 
 // Initialize webhook endpoint from configuration
@@ -327,7 +849,7 @@ function initializeWebhookEndpoint() {
   if (CONFIG && CONFIG.WEBHOOK && CONFIG.WEBHOOK.ENDPOINT) {
     WEBHOOK_ENDPOINT = CONFIG.WEBHOOK.ENDPOINT;
     SERVER_BASE_URL = CONFIG.WEBHOOK.ENDPOINT.replace('/webhook', '');
-    console.log("Webhook endpoint initialized:", WEBHOOK_ENDPOINT);
+    // Webhook endpoint initialized
   } else {
     console.warn("Webhook endpoint not configured in CONFIG object");
     // Fallback: disable webhook functionality
@@ -397,7 +919,7 @@ function handleRightClick(event) {
 // Function to refresh side panel status (can be called periodically)
 function refreshSidePanelStatus() {
   chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
-    console.log("Side panel status refreshed:", response);
+    // Side panel status refreshed
   });
 }
 
@@ -422,7 +944,7 @@ function createSidePanelOverlay() {
     transition: right 0.3s ease;
     display: flex;
     flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif;
     overflow: hidden;
   `;
   
@@ -440,8 +962,8 @@ function createSidePanelOverlay() {
   
   header.innerHTML = `
     <div>
-      <h1 style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Justice Definitions Project</h1>
-      <p style="font-size: 12px; opacity: 0.9;">Legal definitions at your fingertips</p>
+      <h1 style="font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 4px;">Justice Definitions Project</h1>
+      <p style="font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 12px; opacity: 0.9;">Legal definitions at your fingertips</p>
     </div>
     <button id="jdp-close-btn" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;">✕</button>
   `;
@@ -461,8 +983,8 @@ function createSidePanelOverlay() {
   searchSection.style.cssText = 'margin-bottom: 20px;';
   searchSection.innerHTML = `
     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-      <input type="text" id="jdp-search-input" placeholder="Search for legal terms..." style="flex: 1; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; transition: border-color 0.2s;">
-      <button id="jdp-search-btn" style="padding: 10px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">Search</button>
+      <input type="text" id="jdp-search-input" placeholder="Search for legal terms..." style="flex: 1; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 14px; transition: border-color 0.2s;">
+      <button id="jdp-search-btn" style="padding: 10px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">Search</button>
     </div>
   `;
   
@@ -470,6 +992,20 @@ function createSidePanelOverlay() {
   const results = document.createElement('div');
   results.id = 'jdp-results';
   results.style.cssText = 'margin-top: 16px;';
+  
+  // Create definition view area
+  const definitionView = document.createElement('div');
+  definitionView.id = 'jdp-definition-view';
+  definitionView.style.cssText = `
+    display: none;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    margin-top: 16px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+  `;
   
   // Create default content
   const defaultContent = document.createElement('div');
@@ -491,6 +1027,7 @@ function createSidePanelOverlay() {
   // Assemble the overlay
   content.appendChild(searchSection);
   content.appendChild(results);
+  content.appendChild(definitionView);
   content.appendChild(defaultContent);
   
   sidePanelOverlay.appendChild(header);
@@ -507,6 +1044,8 @@ function createSidePanelOverlay() {
     sidePanelOverlay.style.right = '0px';
   }, 10);
 }
+
+// Functions are already defined at the top of the file
 
 // Setup side panel event listeners
 function setupSidePanelEvents() {
@@ -539,11 +1078,7 @@ function setupSidePanelEvents() {
   }
   
   // Click outside to close - but only if not during a request
-  document.addEventListener('click', (e) => {
-    if (sidePanelOverlay && !sidePanelOverlay.contains(e.target) && window.currentRequestContext !== 'sidepanel') {
-      closeSidePanelOverlay();
-    }
-  });
+  // Note: This is handled by the main click listener below to avoid conflicts
 }
 
 // Close side panel overlay
@@ -595,14 +1130,13 @@ function performSidePanelSearch(query) {
     apiUrl = CONFIG.API_URL;
   } else {
     apiUrl = "https://jdc-definitions.wikibase.wiki/w/api.php";
-    console.log("Using fallback API URL:", apiUrl);
+    // Using fallback API URL
   }
   
   const searchParams = "action=query&list=search&srprop=snippet&format=json&origin=*" + 
     `&srsearch=${encodeURIComponent(cleanQuery)}`;
   
-  console.log("Performing side panel search for:", cleanQuery);
-  console.log("Using API URL:", apiUrl);
+  // Performing side panel search
   
   fetch(`${apiUrl}?${searchParams}`)
     .then(response => response.json())
@@ -610,6 +1144,31 @@ function performSidePanelSearch(query) {
       if (data && data.query && data.query.search && data.query.search.length > 0) {
         // Show all search results
         let resultsHTML = '';
+        
+        // Store results for navigation
+        window.currentSearchResults = data.query.search.map(item => {
+          const title = item.title;
+          const snippet = item.snippet || "";
+          
+          // Clean up the snippet
+          const tmp = document.createElement("div");
+          tmp.innerHTML = snippet;
+          const cleanSnippet = (tmp.textContent || tmp.innerText || "")
+            .replace(/\[\[[^\]]+\]\]/g, "")
+            .replace(/\{\{[^}]+\}\}/g, "")
+            .replace(/==+[^=]*==+/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+          
+          const sourceUrl = `https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
+          
+          return {
+            title: title,
+            snippet: cleanSnippet,
+            url: sourceUrl
+          };
+        });
+        window.currentSearchQuery = query;
         
         data.query.search.forEach((item, index) => {
           const title = item.title;
@@ -630,12 +1189,20 @@ function performSidePanelSearch(query) {
           resultsHTML += `
             <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
               <div style="font-size: 16px; font-weight: 600; color: #0066cc; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                <a href="${sourceUrl}" target="_blank" style="color: inherit; text-decoration: none;">${title}</a>
+                <a href="#" data-action="show-full-definition" data-index="${index}" style="color: inherit; text-decoration: none;">${title}</a>
                 <span style="font-size: 12px; color: #999;">(${index + 1})</span>
               </div>
-              <div style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${cleanSnippet}</div>
-              <div style="font-size: 12px; color: #999;">
-                <a href="${sourceUrl}" target="_blank" style="color: #0066cc; text-decoration: none;">Read more →</a>
+              <div style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 12px;">${cleanSnippet}</div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <button data-action="show-full-definition" data-index="${index}" 
+                        style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                  Read more →
+                </button>
+                <span style="color: #ccc; font-size: 12px;">|</span>
+                <button data-action="open-wiki" data-url="${sourceUrl}" 
+                        style="background: #f8f9fa; color: #0066cc; border: 1px solid #e1e5e9; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                  View on Wiki →
+                </button>
               </div>
             </div>
           `;
@@ -659,11 +1226,8 @@ function performSidePanelSearch(query) {
           if (button) {
             button.addEventListener('click', function() {
               const query = this.getAttribute('data-query');
-              console.log('Request Definition button clicked for query:', query);
-              console.log('Available functions:', {
-                requestDefinitionFromSidePanel: typeof window.requestDefinitionFromSidePanel,
-                handleDefinitionRequest: typeof window.handleDefinitionRequest
-              });
+              // Request Definition button clicked
+              // Checking available functions
               
               if (typeof window.requestDefinitionFromSidePanel === 'function') {
                 window.requestDefinitionFromSidePanel(query);
@@ -716,65 +1280,63 @@ function requestDefinitionFromSidePanel(query) {
     let webhookEndpoint;
     try {
       webhookEndpoint = getWebhookEndpoint();
-    } catch (error) {
+  } catch (error) {
       console.error("Error getting webhook endpoint:", error);
-      webhookEndpoint = 'https://script.google.com/macros/s/AKfycbwe6ZfVIjHNR77MiMVgpen4ijuUObyRWqcLGV3VNMU/exec/webhook';
-    }
-    
+      webhookEndpoint = 'https://script.google.com/macros/s/AKfycbzG-tIWYSfIV6DQKICOFiQ2TUl_dfBabK2Hxet_u9mdWNcB_FcDduPAx9oVzibxRZgO/exec/webhook';
+  }
+  
     if (!webhookEndpoint) {
-      console.error("Webhook endpoint not configured - cannot submit request");
+    console.error("Webhook endpoint not configured - cannot submit request");
       updateSidePanelWithError(query, "Webhook endpoint not configured");
-      return;
-    }
-    
-    console.log("requestDefinitionFromSidePanel called with query:", query);
-    console.log("CONFIG object:", CONFIG);
-    console.log("Webhook endpoint:", webhookEndpoint);
-    
-    // Get current page URL
-    const pageUrl = window.location.href;
-    const nowIso = new Date().toISOString();
-    
-    // Prepare request data (access key is now handled server-side)
-    const requestData = { 
-      term: query, 
-      page_url: pageUrl, 
-      timestamp: nowIso
-    };
-    
-    console.log("Sending webhook request from side panel:", requestData);
-    console.log("Webhook endpoint:", webhookEndpoint);
-    
-    // Show loading state in side panel
-    const results = document.getElementById('jdp-results');
-    if (results) {
-      results.innerHTML = `
-        <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: center;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-            <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <span style="color: #666;">Submitting request...</span>
-          </div>
-          <style>
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
+    return;
+  }
+  
+  // Request definition from side panel
+    // Webhook endpoint configured
+  
+  // Get current page URL
+  const pageUrl = window.location.href;
+  const nowIso = new Date().toISOString();
+  
+  // Prepare request data (access key is now handled server-side)
+  const requestData = { 
+    term: query, 
+    page_url: pageUrl, 
+    timestamp: nowIso
+  };
+  
+  // Sending webhook request from side panel
+    // Webhook endpoint configured
+  
+  // Show loading state in side panel
+  const results = document.getElementById('jdp-results');
+  if (results) {
+    results.innerHTML = `
+      <div style="background: white; border: 1px solid #e1e5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+          <div style="width: 16px; height: 16px; border: 2px solid #0066cc; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span style="color: #666;">Submitting request...</span>
         </div>
-      `;
-    }
-    
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </div>
+    `;
+  }
+  
     // Use background script to avoid CORS issues
-    console.log("Sending webhook request via background script");
-    console.log("Request data:", requestData);
-    
-    try {
+    // Sending webhook request via background script
+  
+  try {
       // Send message to background script to handle the webhook request
       chrome.runtime.sendMessage({
         type: "SEND_WEBHOOK_REQUEST",
         data: requestData
       }, (response) => {
-        console.log("Background script response:", response);
+        // Background script response received
         
         if (chrome.runtime.lastError) {
           console.error("Chrome runtime error:", chrome.runtime.lastError);
@@ -783,14 +1345,14 @@ function requestDefinitionFromSidePanel(query) {
         }
         
         if (response && response.success) {
-          console.log("Webhook request successful via background script");
+          // Webhook request successful via background script
           // Only show popup for non-side panel requests
           if (!isSidePanelRequest()) {
             showSuccessPopup(`"${query}" has been added to Request Definitions queue for experts to add to Justice Definitions Project.`);
           }
           // Update side panel with success message
           updateSidePanelWithSuccess(query);
-        } else {
+          } else {
           console.error("Webhook request failed via background script:", response);
           // Only show popup for non-side panel requests
           if (!isSidePanelRequest()) {
@@ -835,7 +1397,7 @@ window.showSidePanelHome = showSidePanelHome;
 
 // Add a fallback function that can be called from the side panel
 window.handleDefinitionRequest = function(query) {
-  console.log("handleDefinitionRequest called with query:", query);
+  // Handle definition request
   if (typeof requestDefinitionFromSidePanel === 'function') {
     requestDefinitionFromSidePanel(query);
   } else {
@@ -845,8 +1407,7 @@ window.handleDefinitionRequest = function(query) {
 
 // Test function to verify webhook URL accessibility
 function testWebhookURL() {
-  console.log("Testing webhook URL accessibility...");
-  console.log("Webhook URL:", CONFIG.WEBHOOK_URL);
+  // Testing webhook URL accessibility
   
   // Test with a simple GET request first
   fetch(CONFIG.WEBHOOK_URL, {
@@ -854,9 +1415,7 @@ function testWebhookURL() {
     mode: 'no-cors'
   })
   .then((response) => {
-    console.log("GET test response:", response);
-    console.log("GET test - Response type:", response.type);
-    console.log("GET test - Response status:", response.status);
+    // GET test response received
   })
   .catch((error) => {
     console.error("GET test failed:", error);
@@ -875,9 +1434,7 @@ function testWebhookURL() {
     body: testFormData
   })
   .then((response) => {
-    console.log("POST test response:", response);
-    console.log("POST test - Response type:", response.type);
-    console.log("POST test - Response status:", response.status);
+    // POST test response received
   })
   .catch((error) => {
     console.error("POST test failed:", error);
@@ -907,7 +1464,7 @@ function showFloatingPopup(selection) {
     max-width: 400px;
     width: auto;
     z-index: 10000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif;
     font-size: 14px;
     line-height: 1.4;
     color: #333;
@@ -987,6 +1544,11 @@ function lookupDefinition(query) {
             // Use extract if available, otherwise fall back to snippet
             let finalText = extractText || cleanSnippet;
             
+            // Cache the full content for "Read more" functionality
+            if (extractText && extractText.length > 50) {
+              cacheFullContent(title, extractText);
+            }
+            
             // Filter out non-English content
             finalText = filterEnglishContent(finalText);
             
@@ -1041,9 +1603,8 @@ function showDefinitionResult(title, definition, originalQuery) {
     displayText = definition.trim() + " (Click 'Read more' for full definition)";
   } else {
     // More direct approach: split into lines and filter out metadata lines
-    console.log("Processing definition content:", definition);
+    // Processing definition content
     const lines = definition.split('\n');
-    console.log("Split into lines:", lines);
     const filteredLines = [];
     
     for (const line of lines) {
@@ -1063,34 +1624,34 @@ function showDefinitionResult(title, definition, originalQuery) {
     
     const cleanDefinition = filteredLines.join('\n').trim();
     
-    console.log("Filtered lines:", filteredLines);
+    // Filtered lines processed
     
     // Now find the first substantial content line
     for (let i = 0; i < filteredLines.length; i++) {
       const line = filteredLines[i];
-      console.log(`Processing line ${i}: "${line}"`);
+      // Processing line
       
       // Skip only obvious headers and very short lines
       if (line.length < 10 || 
           line.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) ||
           (line.match(/^[A-Z][a-z]+$/) && line.length < 20)) {
-        console.log(`Skipping short/header line: "${line}"`);
+        // Skipping short/header line
         continue;
       }
       
       // Universal pattern: Skip any "What is..." question/heading and look for the actual answer
       if (line.match(/^What is.*$/i)) {
-        console.log(`Found "What is..." line: "${line}", looking for next substantial line`);
+        // Found "What is..." line, looking for next substantial line
         // Look for the next substantial line after the question/heading
         for (let j = i + 1; j < filteredLines.length; j++) {
           const nextLine = filteredLines[j];
-          console.log(`Checking next line ${j}: "${nextLine}"`);
+          // Checking next line
           if (nextLine.length >= 15 && 
               !nextLine.match(/^(Table of contents|Contents|Navigation|References|See also)$/i) &&
               !nextLine.match(/^What is.*$/i) &&
               !nextLine.match(/^Reviewed/i)) {
             // Found the actual definition after the question/heading
-            console.log(`Found definition line: "${nextLine}"`);
+            // Found definition line
             const maxChars = 200;
             displayText = nextLine.length > maxChars ? 
               nextLine.substring(0, maxChars) + "..." : nextLine;
@@ -1098,7 +1659,7 @@ function showDefinitionResult(title, definition, originalQuery) {
           }
         }
         if (displayText) {
-          console.log(`Using definition: "${displayText}"`);
+          // Using processed definition
           break; // Found definition after question
         }
         continue; // Skip the question/heading line itself
@@ -1159,8 +1720,10 @@ function showDefinitionResult(title, definition, originalQuery) {
         ${displayText}
       </div>
       <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-        <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
-           target="_blank" 
+        <a href="#" data-action="open-side-panel-with-definition" 
+           data-term="${title}" 
+           data-definition="${displayText}" 
+           data-source-url="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}"
            style="color: #0066cc; text-decoration: none; font-size: 12px;">
           Read more →
         </a>
@@ -1182,8 +1745,10 @@ function showDefinitionResult(title, definition, originalQuery) {
           Error displaying content. Click 'Read more' to view the full page.
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <a href="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" 
-             target="_blank" 
+          <a href="#" data-action="open-side-panel-with-definition" 
+             data-term="${title}" 
+             data-definition="${displayText}" 
+             data-source-url="https://jdc-definitions.wikibase.wiki/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}"
              style="color: #0066cc; text-decoration: none; font-size: 12px;">
             Read more →
           </a>
@@ -1310,7 +1875,7 @@ function requestDefinition(query) {
     timestamp: nowIso
   };
   
-  console.log("Sending webhook request via background script:", requestData);
+  // Sending webhook request via background script
   
   // Show loading state in side panel
   const results = document.getElementById('jdp-results');
@@ -1334,7 +1899,7 @@ function requestDefinition(query) {
     type: "SEND_WEBHOOK_REQUEST",
     data: requestData
   }, (response) => {
-    console.log("Background script response:", response);
+    // Background script response received
     
     if (chrome.runtime.lastError) {
       console.error("Chrome runtime error:", chrome.runtime.lastError);
@@ -1343,7 +1908,7 @@ function requestDefinition(query) {
     }
     
     if (response && response.success) {
-      console.log("Webhook request successful via background script");
+      // Webhook request successful via background script
       // Only show popup for non-side panel requests
       if (!isSidePanelRequest()) {
         showSuccessPopup(`"${query}" has been added to Request Definitions queue for experts to add to Justice Definitions Project.`);
@@ -1372,17 +1937,17 @@ function requestDefinition(query) {
 function clearRequestContext() {
   setTimeout(() => {
     window.currentRequestContext = null;
-    console.log('Request context cleared');
+    // Request context cleared
   }, 3000); // Increased delay to 3 seconds to allow side panel to stay open longer
 }
 
 // Popup functions for user feedback
 function showSuccessPopup(message) {
-  console.log("Showing success popup:", message);
+  // Showing success popup
   
   // Check if popup exists and is in DOM
   if (!floatingPopup || !document.body.contains(floatingPopup)) {
-    console.log("Popup not available, creating new one for success message");
+    // Popup not available, creating new one for success message
     createSuccessPopup(message);
     return;
   }
@@ -1405,11 +1970,11 @@ function showSuccessPopup(message) {
 }
 
 function showErrorPopup(message) {
-  console.log("Showing error popup:", message);
+  // Showing error popup
   
   // Check if popup exists and is in DOM
   if (!floatingPopup || !document.body.contains(floatingPopup)) {
-    console.log("Popup not available, creating new one for error message");
+    // Popup not available, creating new one for error message
     createErrorPopup(message);
     return;
   }
@@ -1435,21 +2000,21 @@ function showErrorPopup(message) {
 function isSidePanelRequest() {
   // Only check the explicit request context - this is the most reliable indicator
   if (window.currentRequestContext === 'sidepanel') {
-    console.log('Side panel request context detected');
+    // Side panel request context detected
     return true;
   }
   
-  console.log('Not a side panel request');
+  // Not a side panel request
   return false;
 }
 
 // Side panel feedback functions
 function updateSidePanelWithSuccess(query) {
-  console.log("Updating side panel with success for query:", query);
+  // Updating side panel with success
   
   // Only update if this is actually a side panel request
   if (window.currentRequestContext !== 'sidepanel') {
-    console.log("Not a side panel request, skipping side panel update");
+    // Not a side panel request, skipping side panel update
     return;
   }
   
@@ -1458,12 +2023,12 @@ function updateSidePanelWithSuccess(query) {
   
   // If overlay not found, try to recreate it for side panel requests
   if (!sidePanelOverlay || !document.body.contains(sidePanelOverlay)) {
-    console.log("Side panel overlay not found, attempting to recreate for side panel request");
+    // Side panel overlay not found, attempting to recreate for side panel request
     createSidePanelOverlay();
     sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
     
     if (!sidePanelOverlay) {
-      console.log("Failed to recreate side panel overlay");
+      // Failed to recreate side panel overlay
       return;
     }
   }
@@ -1489,21 +2054,21 @@ function updateSidePanelWithSuccess(query) {
         </div>
       `;
       
-      console.log("Side panel success message updated successfully");
+      // Side panel success message updated successfully
     } catch (error) {
       console.error("Error updating side panel with success message:", error);
     }
-  } else {
-    console.log("Results element not found or not in DOM, cannot update success message");
+          } else {
+    // Results element not found or not in DOM, cannot update success message
   }
 }
 
 function updateSidePanelWithError(query, errorMessage) {
-  console.log("Updating side panel with error for query:", query, "Error:", errorMessage);
+  // Updating side panel with error
   
   // Only update if this is actually a side panel request
   if (window.currentRequestContext !== 'sidepanel') {
-    console.log("Not a side panel request, skipping side panel update");
+    // Not a side panel request, skipping side panel update
     return;
   }
   
@@ -1512,12 +2077,12 @@ function updateSidePanelWithError(query, errorMessage) {
   
   // If overlay not found, try to recreate it for side panel requests
   if (!sidePanelOverlay || !document.body.contains(sidePanelOverlay)) {
-    console.log("Side panel overlay not found, attempting to recreate for side panel request");
+    // Side panel overlay not found, attempting to recreate for side panel request
     createSidePanelOverlay();
     sidePanelOverlay = document.getElementById('jdp-side-panel-overlay');
     
     if (!sidePanelOverlay) {
-      console.log("Failed to recreate side panel overlay");
+      // Failed to recreate side panel overlay
       return;
     }
   }
@@ -1549,17 +2114,17 @@ function updateSidePanelWithError(query, errorMessage) {
         </div>
       `;
       
-      console.log("Side panel error message updated successfully");
+      // Side panel error message updated successfully
     } catch (error) {
       console.error("Error updating side panel with error message:", error);
     }
-  } else {
-    console.log("Results element not found or not in DOM, cannot update error message");
+    } else {
+    // Results element not found or not in DOM, cannot update error message
   }
 }
 
 function showSidePanelHome() {
-  console.log("Showing side panel home");
+  // Showing side panel home
   
   const results = document.getElementById('jdp-results');
   const defaultContent = document.getElementById('jdp-default-content');
@@ -1583,13 +2148,13 @@ function showSidePanelHome() {
 function showRequestSuccess(query) {
   // Check if popup exists and is in DOM
   if (!floatingPopup || !document.body.contains(floatingPopup)) {
-    console.log("Popup not available, creating new one for success message");
+    // Popup not available, creating new one for success message
     // Create a new popup for the success message
     createSuccessPopup(query);
     return;
   }
   
-  console.log("Showing success message for query:", query);
+  // Showing success message
   
   // Simple success message as a label string
   floatingPopup.innerHTML = `
@@ -1625,7 +2190,7 @@ function createSuccessPopup(query) {
     min-width: 300px;
     max-width: 400px;
     z-index: 10001;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif;
     font-size: 14px;
     line-height: 1.4;
     color: #333;
@@ -1659,7 +2224,7 @@ function createSuccessPopup(query) {
 function showRequestError(message) {
   // Check if popup exists and is in DOM
   if (!floatingPopup || !document.body.contains(floatingPopup)) {
-    console.log("Popup not available, creating new one for error message");
+    // Popup not available, creating new one for error message
     // Create a new popup for the error message
     createErrorPopup(message);
     return;
@@ -1707,7 +2272,7 @@ function createErrorPopup(message) {
     min-width: 300px;
     max-width: 400px;
     z-index: 10001;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', Arial, sans-serif;
     font-size: 14px;
     line-height: 1.4;
     color: #333;
@@ -1786,49 +2351,14 @@ document.addEventListener("click", function(event) {
     }
     
     if (floatingPopup && !floatingPopup.contains(event.target)) {
-      console.log("Click outside popup detected, closing popup");
+      // Click outside popup detected, closing popup
       floatingPopup.remove();
       floatingPopup = null;
     }
     
-    // Check if click is outside side panel and send message to close it
-    try {
-      chrome.runtime.sendMessage({ type: "CHECK_SIDE_PANEL_STATUS" }, (response) => {
-        try {
-          if (response && response.isOpen) {
-            // Side panel is open, send click outside message with window ID
-            // Check if chrome.windows is available before using it
-            if (chrome.windows && typeof chrome.windows.getCurrent === 'function') {
-              chrome.windows.getCurrent((window) => {
-                try {
-                  if (window && window.id) {
-                    chrome.runtime.sendMessage({ 
-                      type: "CLICK_OUTSIDE_SIDE_PANEL", 
-                      windowId: window.id 
-                    });
-                  } else {
-                    // Fallback: send message without window ID
-                    chrome.runtime.sendMessage({ 
-                      type: "CLICK_OUTSIDE_SIDE_PANEL" 
-                    });
-                  }
-                } catch (error) {
-                  console.error("Error sending click outside message:", error.message);
-                }
-              });
-            } else {
-              // Fallback: send message without window ID if chrome.windows is not available
-              chrome.runtime.sendMessage({ 
-                type: "CLICK_OUTSIDE_SIDE_PANEL" 
-              });
-            }
-          }
-        } catch (error) {
-          console.error("Error in response handler:", error.message);
-        }
-      });
-    } catch (error) {
-      console.error("Error sending side panel status check:", error.message);
+    // Handle side panel overlay click outside
+    if (sidePanelOverlay && !sidePanelOverlay.contains(event.target) && window.currentRequestContext !== 'sidepanel') {
+      closeSidePanelOverlay();
     }
   } catch (error) {
     console.error("Error in click event handler:", error.message);
@@ -1848,15 +2378,15 @@ function onMessageReceived(message, sender, sendResponse) {
     if (message.type === "SEARCH_QUERY") {
       // Store the search query for the side panel
       chrome.storage.local.set({ lastSearchQuery: message.query });
-      
+    
       // Only create side panel if explicitly requested
       if (message.openSidePanel === true) {
-        createSidePanelOverlay();
-        
-        // Perform search in the overlay
-        setTimeout(() => {
-          performSidePanelSearch(message.query);
-        }, 100);
+    createSidePanelOverlay();
+    
+    // Perform search in the overlay
+    setTimeout(() => {
+      performSidePanelSearch(message.query);
+    }, 100);
       }
     
     sendResponse({ success: true });
@@ -1864,9 +2394,31 @@ function onMessageReceived(message, sender, sendResponse) {
     // Only create side panel when explicitly requested
     createSidePanelOverlay();
     sendResponse({ success: true });
+  } else if (message.type === "OPEN_SIDE_PANEL_WITH_DEFINITION") {
+    // Open side panel with specific definition from popup
+    // Set context to side panel to prevent auto-close
+    window.currentRequestContext = 'sidepanel';
+    
+    createSidePanelOverlay();
+    
+    // Show the popup definition directly in the overlay
+    setTimeout(() => {
+      showPopupDefinition({
+        term: message.term,
+        definitionText: message.definitionText,
+        sourceUrl: message.sourceUrl
+      });
+      
+      // Clear context after side panel is fully loaded (longer delay for popup definitions)
+      setTimeout(() => {
+        window.currentRequestContext = null;
+      }, 5000); // 5 seconds to allow user to interact with the definition
+    }, 100);
+    
+    sendResponse({ success: true });
   } else if (message.type === "SIDE_PANEL_CLOSED") {
     // Side panel was closed - refresh status
-    console.log("Side panel closed notification received");
+    // Side panel closed notification received
     refreshSidePanelStatus();
     sendResponse({ success: true });
   } else if (message.txt === "hello from popup") {

@@ -88,6 +88,18 @@ div {
   font-size: 1.2rem;
 }
 
+.term-link {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.term-link:hover {
+  text-decoration: underline;
+  color: #004499;
+}
+
 #definition {
   color: #333;
   line-height: 1.4;

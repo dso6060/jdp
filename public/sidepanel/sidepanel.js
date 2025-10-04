@@ -59,6 +59,15 @@ function checkForSearchQuery() {
       chrome.storage.local.remove(['lastSearchQuery']);
     }
   });
+  
+  // Check for popup definition data
+  chrome.storage.local.get(['popupDefinitionData'], (result) => {
+    if (result.popupDefinitionData) {
+      showPopupDefinition(result.popupDefinitionData);
+      // Clear the stored data
+      chrome.storage.local.remove(['popupDefinitionData']);
+    }
+  });
 }
 
 function handleSearch() {
@@ -146,41 +155,7 @@ async function searchJDPWiki(query) {
   }
 }
 
-function displayResults(results, query) {
-  const resultsContainer = document.getElementById('results');
-  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
-  
-  if (results.length === 0) {
-    // Show wiki home if no results
-    showWikiHome();
-    return;
-  }
-  
-  // Hide the default wiki iframe when showing results
-  wikiIframeContainer.style.display = 'none';
-  
-  let html = `<div class="search-info">
-    <h3>Found ${results.length} definition${results.length === 1 ? '' : 's'} for "${query}"</h3>
-  </div>`;
-  
-  results.forEach(result => {
-    const displayText = getOptimalDisplayText(result.snippet);
-    
-    html += `
-      <div class="result-item">
-        <div class="result-title">
-          <a href="#" onclick="displaySourceUrl('${result.url}'); return false;">${result.title}</a>
-        </div>
-        <div class="result-snippet">${displayText}</div>
-        <div class="result-meta">
-          <a href="#" onclick="displaySourceUrl('${result.url}'); return false;">View full definition →</a>
-        </div>
-      </div>
-    `;
-  });
-  
-  resultsContainer.innerHTML = html;
-}
+// Removed unused function - div-based overlay handles all functionality
 
 function getOptimalDisplayText(text) {
   if (!text || text.length === 0) return "";
@@ -251,33 +226,7 @@ function showError(message) {
   `;
 }
 
-function showWikiHome() {
-  const resultsContainer = document.getElementById('results');
-  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
-  
-  // Show the default wiki iframe
-  wikiIframeContainer.style.display = 'flex';
-  
-  resultsContainer.innerHTML = `
-    <div class="search-info">
-      <h3>No definitions found</h3>
-      <p>Try browsing the Justice Definitions Project knowledge base below.</p>
-    </div>
-  `;
-}
-
-function displaySourceUrl(url) {
-  const wikiIframe = document.getElementById('wikiIframe');
-  const wikiIframeContainer = document.getElementById('wikiIframeContainer');
-  const resultsContainer = document.getElementById('results');
-  
-  // Show the iframe container and hide results
-  wikiIframeContainer.style.display = 'flex';
-  resultsContainer.style.display = 'none';
-  
-  // Load the source URL in the iframe
-  wikiIframe.src = url;
-}
+// Removed unused functions - div-based overlay handles all functionality
 
 function setupClickOutsideHandler() {
   // Listen for clicks on the main page (outside the side panel)
@@ -287,6 +236,10 @@ function setupClickOutsideHandler() {
     }
   });
 }
+
+// Removed unused function - div-based overlay handles all functionality
+
+// Removed unused iframe-based functions - div-based overlay handles all functionality
 
 function closeSidePanel() {
   // Close the side panel by sending a message to the background script
