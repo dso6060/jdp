@@ -6,6 +6,16 @@
 
 An open-source browser extension that makes legal language accessible by connecting webpage text selections to the Justice Definitions Project. This extension allows users to quickly look up legal definitions and contribute new terms for definition.
 
+## 🎬 Demo
+
+### Right-Click Definition Lookup
+![Justice Definitions Project Extension Demo](extension/assets/jdp_demo.gif)
+*Select any legal term on any webpage and right-click for instant definition previews in a floating popup.*
+
+### Side Panel Search Interface
+![Justice Definitions Project Side Panel Demo](extension/assets/jdp_demo3.gif)
+*Click the extension icon to open the sliding overlay panel with built-in search and request functionality.*
+
 ## 🌟 Features
 
 - **Quick Definition Lookup**: Select any legal term on any webpage and get instant definitions
@@ -23,6 +33,15 @@ An open-source browser extension that makes legal language accessible by connect
 - Google account (for Google Apps Script and Google Sheets)
 - Modern browser (Chrome, Firefox, Edge, Safari)
 - Basic knowledge of browser extension development (optional)
+
+### 🎯 How It Works
+
+The extension provides two main ways to access legal definitions:
+
+1. **Right-Click Lookup**: Select any legal term and right-click for instant definitions
+2. **Side Panel Search**: Click the extension icon to open a dedicated search interface
+
+Both methods allow you to request new definitions if they're not found in the database.
 
 ### 1. Set Up Google Apps Script Backend
 
@@ -69,6 +88,31 @@ An open-source browser extension that makes legal language accessible by connect
    - Enable "Developer mode"
    - Click "Load unpacked" and select the `extension` folder
    - Pin the extension to your toolbar
+
+## 🎥 Visual Demonstrations
+
+### Right-Click Definition Lookup
+The extension's core feature - simply select any legal term and right-click to get instant definitions:
+
+![Right-Click Demo](extension/assets/jdp_demo.gif)
+
+**What you see:**
+- Text selection on any webpage
+- Right-click context menu with "Look up definition" option
+- Floating popup with definition content
+- Option to request missing definitions
+
+### Side Panel Search Interface
+Advanced search functionality with a dedicated side panel:
+
+![Side Panel Demo](extension/assets/jdp_demo3.gif)
+
+**What you see:**
+- Extension icon click to open side panel
+- Sliding overlay panel (400px width)
+- Built-in search functionality
+- Request system for missing terms
+- Clean, non-intrusive interface
 
 ## 📁 Project Structure
 
