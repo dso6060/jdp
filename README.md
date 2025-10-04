@@ -269,12 +269,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Google Apps Script for the backend infrastructure
 - The open-source community for inspiration and tools
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/justice-definitions-extension/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/justice-definitions-extension/discussions)
-- **Email**: [Your contact email]
-
 ## 🔄 Version History
 
 - **v1.0.0-open-source**: Initial open-source release
